@@ -18,7 +18,7 @@
       overflow: hidden;
       color: white;
       background:
-        radial-gradient(circle at top, rgba(35, 86, 150, 0.35), transparent 30%),
+        radial-gradient(circle at top, rgba(35, 86, 150, 0.25), transparent 30%),
         linear-gradient(180deg, #0b2340 0%, #07182d 42%, #0a1220 100%);
     }
 
@@ -38,7 +38,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      opacity: 0.35;
+      opacity: 0.28;
       background-image:
         radial-gradient(circle at 10% 20%, rgba(255, 230, 140, 0.22) 0 8px, transparent 9px),
         radial-gradient(circle at 22% 70%, rgba(255, 170, 80, 0.16) 0 7px, transparent 8px),
@@ -47,67 +47,108 @@
         radial-gradient(circle at 55% 12%, rgba(255, 230, 140, 0.15) 0 8px, transparent 9px);
     }
 
-    .cordao-lampadas {
+    /* BANDEIRINHAS FIXAS NO TOPO */
+    .topo-decorado {
       position: absolute;
-      top: 8px;
-      left: -2%;
-      width: 104%;
-      height: 90px;
-      z-index: 2;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 115px;
+      z-index: 5;
       pointer-events: none;
     }
 
-    .fio {
+    .fio-topo {
       position: absolute;
-      top: 12px;
-      left: 0;
-      width: 100%;
+      top: 22px;
+      left: -2%;
+      width: 104%;
       height: 3px;
-      background: #2f2117;
-      transform: rotate(2deg);
+      background: #4f2d16;
       border-radius: 999px;
+      transform: rotate(1deg);
     }
 
-    .lampada {
+    .bandeirinhas-fundo {
       position: absolute;
-      top: 14px;
-      width: 20px;
-      height: 20px;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .bandeirinhas-fundo span {
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 38px solid red;
+      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
+    }
+
+    .bandeirinhas-fundo span:nth-child(1) { border-top-color: #f5b031; }
+    .bandeirinhas-fundo span:nth-child(2) { border-top-color: #d73c2f; }
+    .bandeirinhas-fundo span:nth-child(3) { border-top-color: #2d74c4; }
+    .bandeirinhas-fundo span:nth-child(4) { border-top-color: #3fa23f; }
+    .bandeirinhas-fundo span:nth-child(5) { border-top-color: #f5a623; }
+    .bandeirinhas-fundo span:nth-child(6) { border-top-color: #d73c2f; }
+    .bandeirinhas-fundo span:nth-child(7) { border-top-color: #2d74c4; }
+    .bandeirinhas-fundo span:nth-child(8) { border-top-color: #3fa23f; }
+    .bandeirinhas-fundo span:nth-child(9) { border-top-color: #f5a623; }
+    .bandeirinhas-fundo span:nth-child(10) { border-top-color: #d73c2f; }
+    .bandeirinhas-fundo span:nth-child(11) { border-top-color: #2d74c4; }
+    .bandeirinhas-fundo span:nth-child(12) { border-top-color: #3fa23f; }
+
+    .lampadas-topo {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+    }
+
+    .lampadas-topo span {
+      position: absolute;
+      width: 16px;
+      height: 16px;
       background: #ffd25f;
       border-radius: 50%;
       box-shadow:
         0 0 8px rgba(255, 210, 95, 0.9),
-        0 0 18px rgba(255, 210, 95, 0.7),
-        0 0 32px rgba(255, 210, 95, 0.4);
+        0 0 16px rgba(255, 210, 95, 0.6),
+        0 0 30px rgba(255, 210, 95, 0.35);
     }
 
-    .lampada::before {
+    .lampadas-topo span::before {
       content: "";
       position: absolute;
-      top: -12px;
+      top: -10px;
       left: 50%;
       transform: translateX(-50%);
       width: 3px;
-      height: 12px;
-      background: #2f2117;
+      height: 10px;
+      background: #4f2d16;
     }
 
-    .lampada:nth-child(2) { left: 4%; top: 32px; }
-    .lampada:nth-child(3) { left: 12%; top: 18px; }
-    .lampada:nth-child(4) { left: 24%; top: 36px; }
-    .lampada:nth-child(5) { left: 36%; top: 14px; }
-    .lampada:nth-child(6) { left: 50%; top: 32px; }
-    .lampada:nth-child(7) { left: 64%; top: 16px; }
-    .lampada:nth-child(8) { left: 76%; top: 34px; }
-    .lampada:nth-child(9) { left: 88%; top: 18px; }
-    .lampada:nth-child(10) { left: 96%; top: 30px; }
+    .lampadas-topo span:nth-child(1) { left: 5%; top: 10px; }
+    .lampadas-topo span:nth-child(2) { left: 16%; top: 22px; }
+    .lampadas-topo span:nth-child(3) { left: 28%; top: 8px; }
+    .lampadas-topo span:nth-child(4) { left: 40%; top: 22px; }
+    .lampadas-topo span:nth-child(5) { left: 52%; top: 10px; }
+    .lampadas-topo span:nth-child(6) { left: 64%; top: 24px; }
+    .lampadas-topo span:nth-child(7) { left: 76%; top: 8px; }
+    .lampadas-topo span:nth-child(8) { left: 88%; top: 22px; }
 
     /* BOTÃO DOS AJUSTES */
     .botao-ajustes {
       position: absolute;
-      top: 22px;
-      right: 26px;
-      z-index: 40;
+      top: 18px;
+      right: 20px;
+      z-index: 50;
       border: none;
       border-radius: 999px;
       padding: 12px 18px;
@@ -126,10 +167,10 @@
 
     .painel-ajustes {
       position: absolute;
-      top: 76px;
-      right: 26px;
-      z-index: 40;
-      width: 260px;
+      top: 70px;
+      right: 20px;
+      z-index: 50;
+      width: 250px;
       background: rgba(18, 10, 6, 0.96);
       border: 2px solid rgba(255, 215, 120, 0.35);
       border-radius: 18px;
@@ -201,65 +242,50 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding-top: 34px;
+      padding-top: 38px;
     }
 
     .painel-festa {
       position: relative;
-      padding: 110px 40px 42px 40px;
-      border-radius: 34px;
-      background:
-        linear-gradient(180deg, #5a3418 0%, #6d3e1b 45%, #4d2a12 100%);
+      padding: 90px 30px 30px 30px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, #6e431e 0%, #5a3418 45%, #452611 100%);
       box-shadow:
         0 20px 48px rgba(0, 0, 0, 0.48),
         inset 0 0 0 4px rgba(255, 228, 170, 0.10),
         inset 0 0 0 12px rgba(75, 37, 12, 0.42);
-      border: 7px solid #7b4a23;
-      overflow: visible;
+      border: 7px solid #9d6734;
     }
 
     .painel-festa::before {
       content: "";
       position: absolute;
-      inset: 22px;
-      border-radius: 26px;
-      border: 5px solid #b98a52;
+      inset: 18px;
+      border-radius: 22px;
+      border: 4px solid rgba(204, 150, 93, 0.8);
       pointer-events: none;
-      box-shadow: inset 0 0 0 2px rgba(255, 235, 190, 0.12);
     }
 
-    /* CORDA DA MOLDURA */
-    .corda-moldura {
-      position: absolute;
-      inset: 14px;
-      border: 8px solid #b67a3b;
-      border-radius: 28px;
-      pointer-events: none;
-      z-index: 2;
-      opacity: 0.95;
-    }
-
-    /* PLAQUINHA PRINCIPAL */
+    /* QUADRO MENOR DE CIMA */
     .placa-titulo {
       position: absolute;
-      top: -70px;
+      top: -38px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(90%, 850px);
-      z-index: 8;
-      text-align: center;
+      width: min(76%, 500px);
+      z-index: 20;
     }
 
     .placa-arraia {
-      background:
-        linear-gradient(180deg, #6f4423 0%, #513115 100%);
-      border: 6px solid #8f5b2c;
-      border-radius: 26px;
+      background: linear-gradient(180deg, #7c4c24 0%, #5a3418 100%);
+      border: 5px solid #a46e39;
+      border-radius: 24px;
       box-shadow:
         0 12px 25px rgba(0, 0, 0, 0.42),
         inset 0 0 0 3px rgba(255,255,255,0.08);
-      padding: 16px 24px 18px 24px;
+      padding: 16px 18px;
       position: relative;
+      text-align: center;
     }
 
     .placa-arraia::before,
@@ -267,125 +293,78 @@
       content: "";
       position: absolute;
       top: 18px;
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       background: #2f1809;
       border-radius: 50%;
       box-shadow: inset 0 2px 2px rgba(255,255,255,0.15);
     }
 
     .placa-arraia::before {
-      left: 20px;
+      left: 18px;
     }
 
     .placa-arraia::after {
-      right: 20px;
+      right: 18px;
     }
 
     .titulo-arraia {
       margin: 0;
       font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(36px, 5vw, 82px);
-      line-height: 0.95;
+      font-size: clamp(28px, 4vw, 56px);
+      line-height: 1;
       font-weight: 900;
-      letter-spacing: 1px;
       color: transparent;
       background: linear-gradient(
         90deg,
         #e94735 0%,
-        #f2b52f 20%,
-        #5ca73b 40%,
-        #2d63b5 60%,
-        #d74a33 80%,
-        #4fb26b 100%
+        #f2b52f 25%,
+        #5ca73b 50%,
+        #2d63b5 75%,
+        #d74a33 100%
       );
       -webkit-background-clip: text;
       background-clip: text;
       text-shadow:
-        0 4px 0 rgba(45, 22, 8, 0.75),
-        2px 2px 0 rgba(255, 243, 208, 0.15);
-    }
-
-    .faixa-junino {
-      margin: 10px auto 10px auto;
-      display: inline-block;
-      background: linear-gradient(180deg, #f0b02f 0%, #d58518 100%);
-      color: #132a58;
-      font-weight: 900;
-      font-size: clamp(22px, 3.3vw, 52px);
-      padding: 10px 26px;
-      border-radius: 16px;
-      box-shadow: 0 6px 0 #a55c0f;
+        0 3px 0 rgba(45, 22, 8, 0.70),
+        1px 1px 0 rgba(255, 243, 208, 0.10);
       letter-spacing: 1px;
     }
 
     .subtitulo-escola {
-      margin-top: 10px;
+      margin-top: 8px;
       display: inline-block;
       background: #113769;
-      border: 4px dashed #d9a642;
-      border-radius: 18px;
+      border: 3px dashed #d9a642;
+      border-radius: 16px;
       color: #fff3d1;
       font-weight: bold;
-      font-size: clamp(16px, 1.8vw, 26px);
-      padding: 10px 20px;
+      font-size: clamp(14px, 1.5vw, 22px);
+      padding: 10px 18px;
       line-height: 1.2;
     }
 
-    /* BANDEIRINHAS */
-    .bandeirinhas-topo {
-      position: absolute;
-      top: -4px;
-      left: -2%;
-      width: 104%;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      z-index: 12;
-      pointer-events: none;
-    }
-
-    .bandeirinhas-topo span {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-top: 42px solid red;
-      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
-    }
-
-    .bandeirinhas-topo span:nth-child(1) { border-top-color: #f5b031; }
-    .bandeirinhas-topo span:nth-child(2) { border-top-color: #d73c2f; }
-    .bandeirinhas-topo span:nth-child(3) { border-top-color: #2d74c4; }
-    .bandeirinhas-topo span:nth-child(4) { border-top-color: #f5a623; }
-    .bandeirinhas-topo span:nth-child(5) { border-top-color: #d73c2f; }
-    .bandeirinhas-topo span:nth-child(6) { border-top-color: #3fa23f; }
-    .bandeirinhas-topo span:nth-child(7) { border-top-color: #f5a623; }
-    .bandeirinhas-topo span:nth-child(8) { border-top-color: #d73c2f; }
-    .bandeirinhas-topo span:nth-child(9) { border-top-color: #2d74c4; }
-    .bandeirinhas-topo span:nth-child(10) { border-top-color: #3fa23f; }
-
-    /* CHAPÉU */
+    /* DECORAÇÕES */
     .chapeu-palha {
       position: absolute;
-      top: 18px;
-      left: -26px;
-      width: 120px;
-      height: 70px;
+      top: 34px;
+      left: -32px;
+      width: 90px;
+      height: 52px;
       background: #d0a15c;
       border-radius: 50%;
       transform: rotate(-22deg);
-      z-index: 11;
+      z-index: 14;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
     }
 
     .chapeu-palha::before {
       content: "";
       position: absolute;
-      top: 14px;
-      left: 24px;
-      width: 70px;
-      height: 44px;
+      top: 10px;
+      left: 18px;
+      width: 52px;
+      height: 30px;
       background: #c99447;
       border-radius: 50%;
     }
@@ -393,20 +372,19 @@
     .chapeu-palha::after {
       content: "";
       position: absolute;
-      top: 26px;
-      left: 12px;
-      width: 96px;
-      height: 10px;
+      top: 18px;
+      left: 10px;
+      width: 70px;
+      height: 8px;
       background: #b52e2e;
       border-radius: 999px;
     }
 
-    /* BALÕES JUNINOS */
     .balao-junino {
       position: absolute;
-      width: 90px;
-      height: 120px;
-      z-index: 6;
+      width: 76px;
+      height: 104px;
+      z-index: 8;
       filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.35));
     }
 
@@ -432,10 +410,10 @@
       content: "";
       position: absolute;
       left: 50%;
-      bottom: -24px;
+      bottom: -22px;
       transform: translateX(-50%);
       width: 4px;
-      height: 24px;
+      height: 22px;
       background: #c99a62;
       box-shadow:
         -8px 10px 0 0 #d34435,
@@ -444,27 +422,48 @@
     }
 
     .balao-esquerda {
-      left: -56px;
+      left: -44px;
       top: 150px;
       transform: rotate(-10deg);
     }
 
     .balao-direita {
-      right: -50px;
-      top: 120px;
+      right: -42px;
+      top: 130px;
       transform: rotate(8deg);
     }
 
-    /* DECORAÇÕES */
+    .girassol {
+      position: absolute;
+      bottom: 18px;
+      left: -6px;
+      width: 76px;
+      height: 76px;
+      background: #f4b531;
+      border-radius: 50%;
+      z-index: 8;
+      box-shadow: 0 0 0 10px rgba(244,181,49,0.30);
+    }
+
+    .girassol::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      background: #5e3518;
+      border-radius: 50%;
+    }
+
     .milho {
       position: absolute;
-      bottom: 26px;
-      width: 48px;
-      height: 92px;
+      bottom: 24px;
+      left: 68px;
+      width: 42px;
+      height: 82px;
       background: #f3c242;
       border-radius: 50% 50% 42% 42%;
-      z-index: 6;
+      z-index: 8;
       box-shadow: inset -8px -8px 0 rgba(0,0,0,0.14);
+      transform: rotate(-10deg);
     }
 
     .milho::before,
@@ -472,66 +471,40 @@
       content: "";
       position: absolute;
       bottom: -4px;
-      width: 34px;
-      height: 60px;
+      width: 28px;
+      height: 48px;
       background: #3e8d3d;
       border-radius: 80% 10% 80% 10%;
       z-index: -1;
     }
 
     .milho::before {
-      left: -18px;
+      left: -16px;
       transform: rotate(-24deg);
     }
 
     .milho::after {
-      right: -18px;
+      right: -16px;
       transform: rotate(24deg) scaleX(-1);
-    }
-
-    .milho-esquerda {
-      left: 18px;
-      transform: rotate(-8deg);
-    }
-
-    .girassol {
-      position: absolute;
-      bottom: 18px;
-      left: -10px;
-      width: 90px;
-      height: 90px;
-      background: #f4b531;
-      border-radius: 50%;
-      z-index: 5;
-      box-shadow:
-        0 0 0 12px rgba(244,181,49,0.35);
-    }
-
-    .girassol::before {
-      content: "";
-      position: absolute;
-      inset: 18px;
-      background: #5e3518;
-      border-radius: 50%;
     }
 
     .fogueira {
       position: absolute;
-      right: 18px;
-      bottom: 24px;
-      width: 90px;
-      height: 110px;
-      z-index: 5;
+      right: 16px;
+      bottom: 20px;
+      width: 82px;
+      height: 100px;
+      z-index: 8;
     }
 
     .fogueira::before {
       content: "";
       position: absolute;
       left: 50%;
-      bottom: 22px;
+      bottom: 18px;
       transform: translateX(-50%);
-      width: 56px;
-      height: 72px;
+      width: 52px;
+      height: 68px;
       background: radial-gradient(circle at 50% 85%, #ff7b00 0%, #ff9800 30%, #ffd54f 55%, transparent 60%);
       filter: blur(1px);
     }
@@ -542,13 +515,13 @@
       left: 50%;
       bottom: 0;
       transform: translateX(-50%) rotate(10deg);
-      width: 70px;
-      height: 18px;
+      width: 64px;
+      height: 16px;
       background: #5a3115;
       border-radius: 12px;
       box-shadow:
-        -16px -8px 0 0 #6b3c18,
-        16px -8px 0 0 #6b3c18;
+        -14px -8px 0 0 #6b3c18,
+        14px -8px 0 0 #6b3c18;
     }
 
     /* ÁREA DO VÍDEO */
@@ -568,23 +541,23 @@
     }
 
     .tamanho-pequeno {
-      width: min(34vw, 460px);
-      height: min(46vh, 390px);
+      width: min(32vw, 430px);
+      height: min(44vh, 360px);
     }
 
     .tamanho-medio {
-      width: min(46vw, 620px);
-      height: min(58vh, 500px);
+      width: min(42vw, 560px);
+      height: min(54vh, 460px);
     }
 
     .tamanho-grande {
-      width: min(58vw, 800px);
-      height: min(68vh, 620px);
+      width: min(54vw, 740px);
+      height: min(64vh, 580px);
     }
 
     .tamanho-cheio {
-      width: min(70vw, 980px);
-      height: min(74vh, 700px);
+      width: min(66vw, 900px);
+      height: min(72vh, 650px);
     }
 
     .video-telao {
@@ -598,7 +571,7 @@
 
     .nome-participante {
       position: absolute;
-      bottom: 24px;
+      bottom: 22px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(17, 55, 105, 0.95);
@@ -606,7 +579,7 @@
       color: #fff3d1;
       padding: 15px 30px;
       border-radius: 999px;
-      font-size: 30px;
+      font-size: 28px;
       font-weight: bold;
       text-align: center;
       max-width: 86vw;
@@ -614,52 +587,58 @@
       box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     }
 
-    /* status escondido */
     #statusTelao {
       display: none;
     }
 
     @media (max-width: 900px) {
+      .topo-decorado {
+        height: 80px;
+      }
+
+      .bandeirinhas-fundo span {
+        border-left-width: 11px;
+        border-right-width: 11px;
+        border-top-width: 22px;
+      }
+
+      .lampadas-topo {
+        display: none;
+      }
+
       .botao-ajustes {
-        top: 14px;
-        right: 14px;
+        top: 12px;
+        right: 12px;
         padding: 10px 14px;
         font-size: 13px;
       }
 
       .painel-ajustes {
-        top: 58px;
-        right: 14px;
+        top: 54px;
+        right: 12px;
         width: 220px;
       }
 
       .area-central {
-        padding-top: 24px;
+        padding-top: 18px;
       }
 
       .painel-festa {
-        padding: 92px 18px 22px 18px;
+        padding: 78px 16px 18px 16px;
       }
 
       .placa-titulo {
-        top: -58px;
-        width: 94%;
+        top: -28px;
+        width: 86%;
       }
 
-      .faixa-junino {
-        font-size: 22px;
-        padding: 8px 18px;
+      .titulo-arraia {
+        font-size: 30px;
       }
 
       .subtitulo-escola {
-        font-size: 14px;
+        font-size: 13px;
         padding: 8px 12px;
-      }
-
-      .bandeirinhas-topo span {
-        border-left-width: 12px;
-        border-right-width: 12px;
-        border-top-width: 24px;
       }
 
       .chapeu-palha,
@@ -672,28 +651,28 @@
 
       .tamanho-pequeno {
         width: 66vw;
-        height: 40vh;
+        height: 38vh;
       }
 
       .tamanho-medio {
         width: 80vw;
-        height: 50vh;
+        height: 48vh;
       }
 
       .tamanho-grande {
         width: 88vw;
-        height: 58vh;
+        height: 56vh;
       }
 
       .tamanho-cheio {
         width: 94vw;
-        height: 64vh;
+        height: 62vh;
       }
 
       .nome-participante {
         font-size: 22px;
         padding: 12px 22px;
-        bottom: 18px;
+        bottom: 16px;
       }
     }
   </style>
@@ -703,17 +682,18 @@
   <main class="telao">
     <div class="fundo-luzes"></div>
 
-    <div class="cordao-lampadas">
-      <div class="fio"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
-      <div class="lampada"></div>
+    <div class="topo-decorado">
+      <div class="fio-topo"></div>
+
+      <div class="lampadas-topo">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="bandeirinhas-fundo">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
     </div>
 
     <button class="botao-ajustes" onclick="alternarPainel()">
@@ -743,29 +723,18 @@
 
     <div class="area-central">
       <div class="painel-festa">
-
-        <div class="corda-moldura"></div>
-
-        <div class="bandeirinhas-topo">
-          <span></span><span></span><span></span><span></span><span></span>
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
-
-        <div class="chapeu-palha"></div>
-
         <div class="placa-titulo">
           <div class="placa-arraia">
-            <h1 class="titulo-arraia">ARRAIÁ</h1>
-            <div class="faixa-junino">JUNINO</div><br>
-            <div class="subtitulo-escola">COLÉGIO ESTADUAL<br>LÚCIA ALVES</div>
+            <h1 class="titulo-arraia">ARRAIÁ JULINO</h1>
+            <div class="subtitulo-escola">COLÉGIO LUCIA ALVES</div>
           </div>
         </div>
 
+        <div class="chapeu-palha"></div>
         <div class="balao-junino balao-esquerda"></div>
         <div class="balao-junino balao-direita"></div>
-
         <div class="girassol"></div>
-        <div class="milho milho-esquerda"></div>
+        <div class="milho"></div>
         <div class="fogueira"></div>
 
         <div id="caixaVideo" class="janela-video tamanho-medio">
