@@ -6,9 +6,116 @@
 
   <title>Telão do Evento</title>
 
-  <link rel="stylesheet" href="style.css" />
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
+    }
+
+    .body-telao {
+      background: black;
+      overflow: hidden;
+    }
+
+    .telao {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .topo-telao {
+      position: absolute;
+      top: 25px;
+      left: 35px;
+      z-index: 10;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .topo-telao h1 {
+      margin: 0;
+      font-size: 42px;
+    }
+
+    .topo-telao p {
+      margin: 8px 0 0;
+      font-size: 22px;
+      color: #ffdf7e;
+    }
+
+    /* Caixa central da câmera */
+    .caixa-video {
+      width: min(38vw, 520px);
+      height: min(70vh, 520px);
+      max-width: 90vw;
+      max-height: 70vh;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+      position: relative;
+      z-index: 2;
+    }
+
+    .video-telao {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* ESSENCIAL: não estica */
+      object-position: center;
+      background: black;
+      display: block;
+    }
+
+    .nome-participante {
+      position: absolute;
+      bottom: 35px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.72);
+      padding: 18px 36px;
+      border-radius: 999px;
+      font-size: 34px;
+      font-weight: bold;
+      text-align: center;
+      max-width: 90vw;
+      z-index: 10;
+    }
+
+    @media (max-width: 900px) {
+      .topo-telao h1 {
+        font-size: 30px;
+      }
+
+      .topo-telao p {
+        font-size: 18px;
+      }
+
+      .caixa-video {
+        width: min(70vw, 420px);
+        height: min(60vh, 420px);
+      }
+
+      .nome-participante {
+        font-size: 24px;
+        padding: 14px 24px;
+      }
+    }
+  </style>
 </head>
 <body class="body-telao">
   <main class="telao">
@@ -17,12 +124,15 @@
       <p id="statusTelao">Aguardando participante...</p>
     </div>
 
-    <video
-      id="videoRemoto"
-      class="video-telao"
-      autoplay
-      playsinline
-    ></video>
+    <div class="caixa-video">
+      <video
+        id="videoRemoto"
+        class="video-telao"
+        autoplay
+        muted
+        playsinline
+      ></video>
+    </div>
 
     <div id="nomeParticipante" class="nome-participante">
       Nenhum participante selecionado
@@ -42,19 +152,17 @@
 
     let pc = null;
     let participanteAtual = null;
+    let remoteStream = null;
+    let candidatosPendentes = [];
 
     const iceServers = [
-      {
-        urls: "stun:stun.l.google.com:19302"
-      },
-      {
-        urls: "stun:stun1.l.google.com:19302"
-      }
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" }
     ];
 
     socket.on("connect", () => {
       socket.emit("registrarTelao");
-
       statusTelao.textContent =
         "Telão conectado. Aguardando seleção do admin.";
     });
@@ -73,14 +181,12 @@
         participanteAtual = data.participante;
 
         nomeParticipante.textContent = participanteAtual.nome;
-
         statusTelao.textContent =
           "Conectando com " + participanteAtual.nome + "...";
 
         await criarConexao(participanteAtual.id);
 
         const offer = await pc.createOffer();
-
         await pc.setLocalDescription(offer);
 
         socket.emit("offer", {
@@ -89,9 +195,7 @@
         });
       } catch (erro) {
         console.error("Erro ao iniciar vídeo no telão:", erro);
-
-        statusTelao.textContent =
-          "Erro ao iniciar vídeo no telão.";
+        statusTelao.textContent = "Erro ao iniciar vídeo no telão.";
       }
     });
 
@@ -103,22 +207,17 @@
           new RTCSessionDescription(data.answer)
         );
 
-        statusTelao.textContent = "Participante ao vivo.";
+        await processarCandidatosPendentes();
+
+        statusTelao.textContent =
+          "Resposta recebida. Aguardando imagem...";
       } catch (erro) {
         console.error("Erro ao receber answer:", erro);
       }
     });
 
     socket.on("ice-candidate", async (data) => {
-      try {
-        if (pc && data.candidate) {
-          await pc.addIceCandidate(
-            new RTCIceCandidate(data.candidate)
-          );
-        }
-      } catch (erro) {
-        console.error("Erro ICE telão:", erro);
-      }
+      await adicionarCandidato(data.candidate);
     });
 
     socket.on("usuarioDesconectado", (id) => {
@@ -134,18 +233,33 @@
     async function criarConexao(idParticipante) {
       fecharConexao();
 
+      candidatosPendentes = [];
+
       pc = new RTCPeerConnection({
         iceServers: iceServers
       });
+
+      remoteStream = new MediaStream();
+      videoRemoto.srcObject = remoteStream;
 
       pc.addTransceiver("video", {
         direction: "recvonly"
       });
 
-      pc.ontrack = (event) => {
-        videoRemoto.srcObject = event.streams[0];
+      pc.ontrack = async (event) => {
+        console.log("Track recebido no telão:", event.track);
 
-        statusTelao.textContent = "Ao vivo agora!";
+        remoteStream.addTrack(event.track);
+        videoRemoto.srcObject = remoteStream;
+
+        try {
+          await videoRemoto.play();
+          statusTelao.textContent = "Ao vivo agora!";
+        } catch (erro) {
+          console.error("Erro ao dar play no vídeo:", erro);
+          statusTelao.textContent =
+            "Imagem recebida, mas o navegador bloqueou o play.";
+        }
       };
 
       pc.onicecandidate = (event) => {
@@ -160,24 +274,71 @@
       pc.onconnectionstatechange = () => {
         if (!pc) return;
 
+        console.log("Estado telão:", pc.connectionState);
+
         if (pc.connectionState === "connected") {
           statusTelao.textContent = "Participante ao vivo.";
         }
 
-        if (
-          pc.connectionState === "failed" ||
-          pc.connectionState === "disconnected" ||
-          pc.connectionState === "closed"
-        ) {
-          statusTelao.textContent = "Transmissão encerrada.";
+        if (pc.connectionState === "failed") {
+          statusTelao.textContent =
+            "Falha na conexão de vídeo. Tente selecionar novamente.";
+        }
+
+        if (pc.connectionState === "disconnected") {
+          statusTelao.textContent = "Participante desconectado.";
         }
       };
+
+      pc.oniceconnectionstatechange = () => {
+        if (!pc) return;
+        console.log("ICE telão:", pc.iceConnectionState);
+      };
+    }
+
+    async function adicionarCandidato(candidate) {
+      if (!candidate) return;
+
+      if (
+        pc &&
+        pc.remoteDescription &&
+        pc.remoteDescription.type
+      ) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (erro) {
+          console.error("Erro ao adicionar ICE telão:", erro);
+        }
+      } else {
+        candidatosPendentes.push(candidate);
+      }
+    }
+
+    async function processarCandidatosPendentes() {
+      if (!pc) return;
+
+      for (const candidate of candidatosPendentes) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (erro) {
+          console.error("Erro ao processar ICE pendente:", erro);
+        }
+      }
+
+      candidatosPendentes = [];
     }
 
     function fecharConexao() {
       if (pc) {
         pc.close();
         pc = null;
+      }
+
+      if (remoteStream) {
+        remoteStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        remoteStream = null;
       }
     }
 
