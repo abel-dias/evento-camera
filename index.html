@@ -1,1 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <title>Evento Câmera</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1>Evento Câmera</h1>
+
+      <p class="descricao">
+        Escaneie o QR Code para participar ao vivo no telão.
+      </p>
+
+      <div class="qr-box">
+        <img id="qrCode" alt="QR Code do participante" />
+      </div>
+
+      <p class="descricao">
+        O QR Code abre a câmera do participante.
+      </p>
+
+      <div class="links">
+        <a href="participante.html" class="link">Abrir participante</a>
+        <a href="admin.html" class="link">Abrir painel admin</a>
+        <a href="telao.html" class="link">Abrir telão</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const baseUrl = window.location.href.replace("index.html", "");
+    const participanteUrl = baseUrl + "participante.html";
+
+    const qrCode = document.getElementById("qrCode");
+
+    qrCode.src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" +
+      encodeURIComponent(participanteUrl);
+  </script>
+</body>
+</html>
