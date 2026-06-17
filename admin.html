@@ -1,53 +1,111 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-BR">
 <head>
-    <title>Administrador</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Painel Admin</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
 </head>
-
 <body>
+  <main class="container">
+    <section class="card">
+      <h1>Painel Admin</h1>
 
-<h1>Painel Admin</h1>
+      <p id="statusAdmin" class="status">
+        Conectando...
+      </p>
 
-<div id="lista"></div>
+      <h2>Participantes na fila</h2>
 
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+      <div id="fila" class="fila">
+        Nenhum participante na fila.
+      </div>
 
-<script>
+      <button id="btnParar" class="btn btn-secundario">
+        Limpar telão
+      </button>
+    </section>
+  </main>
 
-const socket =
-io("https://evento-camera-server.onrender.com");
+  <script>
+    const SERVER_URL = "https://evento-camera-server.onrender.com";
 
-socket.on("fila",(participantes)=>{
-
-    let html="";
-
-    participantes.forEach(p=>{
-
-        html += `
-        <button onclick="selecionar('${p.id}')">
-        ${p.nome}
-        </button>
-        <br><br>
-        `;
-
+    const socket = io(SERVER_URL, {
+      transports: ["websocket", "polling"]
     });
 
-    document.getElementById("lista")
-    .innerHTML=html;
+    const statusAdmin = document.getElementById("statusAdmin");
+    const filaEl = document.getElementById("fila");
+    const btnParar = document.getElementById("btnParar");
 
-});
+    let selecionadoAtual = null;
 
-function selecionar(id){
+    socket.on("connect", () => {
+      socket.emit("registrarAdmin");
+      statusAdmin.textContent = "Admin conectado.";
+    });
 
-    socket.emit(
-        "selecionar",
-        id
-    );
+    socket.on("disconnect", () => {
+      statusAdmin.textContent = "Admin desconectado.";
+    });
 
-}
+    socket.on("fila", (participantes) => {
+      renderizarFila(participantes);
+    });
 
-</script>
+    socket.on("participanteSelecionado", (participante) => {
+      selecionadoAtual = participante.id;
 
+      statusAdmin.textContent =
+        "Selecionado para o telão: " + participante.nome;
+    });
+
+    socket.on("erroSelecao", (mensagem) => {
+      alert(mensagem);
+    });
+
+    btnParar.addEventListener("click", () => {
+      socket.emit("pararTransmissao", selecionadoAtual);
+
+      selecionadoAtual = null;
+      statusAdmin.textContent = "Telão limpo.";
+    });
+
+    function renderizarFila(participantes) {
+      filaEl.innerHTML = "";
+
+      if (!participantes || participantes.length === 0) {
+        filaEl.textContent = "Nenhum participante na fila.";
+        return;
+      }
+
+      participantes.forEach((participante) => {
+        const item = document.createElement("div");
+        item.className = "item-fila";
+
+        const nome = document.createElement("strong");
+        nome.textContent = participante.nome;
+
+        const botao = document.createElement("button");
+        botao.className = "btn pequeno";
+        botao.textContent = "Colocar no telão";
+
+        botao.addEventListener("click", () => {
+          selecionadoAtual = participante.id;
+
+          socket.emit("selecionar", participante.id);
+        });
+
+        item.appendChild(nome);
+        item.appendChild(botao);
+
+        filaEl.appendChild(item);
+      });
+    }
+  </script>
 </body>
 </html>
