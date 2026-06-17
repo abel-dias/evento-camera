@@ -1,1 +1,51 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+<title>Telão</title>
+
+<style>
+
+body{
+    background:black;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+
+#nome{
+    font-size:80px;
+    margin-top:100px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="nome">
+Aguardando...
+</div>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+<script>
+
+const socket =
+io("https://evento-camera-server.onrender.com");
+
+socket.on(
+"participanteSelecionado",
+(id)=>{
+
+document.getElementById("nome")
+.innerHTML=
+"Participante selecionado:<br>"+id;
+
+});
+
+</script>
+
+</body>
+</html>
