@@ -1,21 +1,70 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-BR">
 <head>
-    <title>Participante</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Participante</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    text-align:center;
+    background:#111;
+    color:white;
+    padding:20px;
+}
+
+video{
+    width:90%;
+    max-width:500px;
+    border-radius:10px;
+    margin-top:20px;
+}
+
+input{
+    padding:10px;
+    width:250px;
+}
+
+button{
+    padding:10px 20px;
+    cursor:pointer;
+}
+
+#status{
+    margin-top:15px;
+    font-size:18px;
+}
+
+</style>
 </head>
 
 <body>
 
-<h1>Entrar na fila</h1>
+<h1>Participação ao Vivo</h1>
 
-<input id="nome" placeholder="Digite seu nome">
+<input
+id="nome"
+placeholder="Digite seu nome">
 
 <button onclick="entrar()">
 Entrar
 </button>
 
-<p id="status"></p>
+<br><br>
+
+<video
+id="camera"
+autoplay
+playsinline
+muted>
+</video>
+
+<div id="status">
+Aguardando entrada...
+</div>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
@@ -24,20 +73,72 @@ Entrar
 const socket =
 io("https://evento-camera-server.onrender.com");
 
-function entrar(){
+let localStream;
 
-    const nome =
-    document.getElementById("nome").value;
+async function entrar(){
 
-    socket.emit("entrar",{
-        nome
-    });
+    try{
 
-    document.getElementById("status")
-    .innerHTML =
-    "Você entrou na fila.";
+        localStream =
+        await navigator.mediaDevices.getUserMedia({
+            video:true,
+            audio:false
+        });
+
+        document
+            .getElementById("camera")
+            .srcObject =
+            localStream;
+
+        const nome =
+        document
+            .getElementById("nome")
+            .value;
+
+        socket.emit("entrar",{
+            nome
+        });
+
+        document
+            .getElementById("status")
+            .innerHTML =
+            "Você entrou na fila.";
+
+    }
+    catch(erro){
+
+        alert(
+            "Permita acesso à câmera."
+        );
+
+        console.error(erro);
+
+    }
 
 }
+
+socket.on(
+"participanteSelecionado",
+(id)=>{
+
+    if(id === socket.id){
+
+        document
+            .getElementById("status")
+            .innerHTML =
+            "🎉 Você está AO VIVO no telão!";
+
+    }
+    else{
+
+        document
+            .getElementById("status")
+            .innerHTML =
+            "Aguardando seleção...";
+
+    }
+
+});
 
 </script>
 
