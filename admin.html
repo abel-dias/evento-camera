@@ -1,1 +1,53 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+    <title>Administrador</title>
+</head>
+
+<body>
+
+<h1>Painel Admin</h1>
+
+<div id="lista"></div>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+<script>
+
+const socket =
+io("https://evento-camera-server.onrender.com");
+
+socket.on("fila",(participantes)=>{
+
+    let html="";
+
+    participantes.forEach(p=>{
+
+        html += `
+        <button onclick="selecionar('${p.id}')">
+        ${p.nome}
+        </button>
+        <br><br>
+        `;
+
+    });
+
+    document.getElementById("lista")
+    .innerHTML=html;
+
+});
+
+function selecionar(id){
+
+    socket.emit(
+        "selecionar",
+        id
+    );
+
+}
+
+</script>
+
+</body>
+</html>
