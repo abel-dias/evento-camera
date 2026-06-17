@@ -1,50 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Telão</title>
 
 <style>
-
 body{
     margin:0;
     background:black;
     overflow:hidden;
-    color:white;
-    font-family:Arial;
 }
 
-#video{
+video{
     width:100vw;
     height:100vh;
     object-fit:cover;
-    background:#111;
+    background:black;
 }
 
 #status{
-
     position:absolute;
     top:20px;
     left:20px;
-
+    color:white;
     background:rgba(0,0,0,.6);
-
-    padding:10px 20px;
-
-    border-radius:8px;
-
-    font-size:20px;
-
+    padding:10px;
+    border-radius:10px;
+    font-family:Arial;
 }
-
 </style>
 
 </head>
-
 <body>
 
 <div id="status">
@@ -64,36 +51,106 @@ playsinline>
 const socket =
 io("https://evento-camera-server.onrender.com");
 
-socket.on("connect",()=>{
+socket.emit("registrarTelao");
 
-    socket.emit(
-        "registrarTelao"
+let pc = null;
+
+const video =
+document.getElementById("video");
+
+socket.on("iniciarVideo", async (participanteId)=>{
+
+    document.getElementById("status")
+    .innerHTML =
+    "Conectando...";
+
+    if(pc){
+
+        pc.close();
+
+    }
+
+    pc = new RTCPeerConnection({
+
+        iceServers:[
+            {
+                urls:"stun:stun.l.google.com:19302"
+            }
+        ]
+
+    });
+
+    pc.ontrack = (event)=>{
+
+        video.srcObject =
+        event.streams[0];
+
+        document.getElementById("status")
+        .innerHTML =
+        "AO VIVO";
+
+    };
+
+    pc.onicecandidate = (event)=>{
+
+        if(event.candidate){
+
+            socket.emit(
+                "ice-candidate",
+                {
+                    target:participanteId,
+                    candidate:event.candidate
+                }
+            );
+
+        }
+
+    };
+
+    const offer =
+    await pc.createOffer();
+
+    await pc.setLocalDescription(
+        offer
     );
 
-    console.log(
-        "Telão registrado"
+    socket.emit(
+        "offer",
+        {
+            target:participanteId,
+            offer
+        }
+    );
+
+});
+
+socket.on("answer", async (data)=>{
+
+    await pc.setRemoteDescription(
+        new RTCSessionDescription(
+            data.answer
+        )
     );
 
 });
 
 socket.on(
-"iniciarVideo",
-(id)=>{
+"ice-candidate",
+async(data)=>{
 
-    console.log(
-        "Participante selecionado:",
-        id
-    );
+    if(pc){
 
-    document
-        .getElementById("status")
-        .innerHTML =
-        "Participante selecionado:<br>" + id;
+        await pc.addIceCandidate(
+            new RTCIceCandidate(
+                data.candidate
+            )
+        );
+
+    }
 
 });
 
 </script>
 
 </body>
-
 </html>
