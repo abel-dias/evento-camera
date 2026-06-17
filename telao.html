@@ -55,12 +55,48 @@
       color: #ffdf7e;
     }
 
-    /* Caixa central da câmera */
+    .controles-tamanho {
+      position: absolute;
+      top: 25px;
+      right: 35px;
+      z-index: 20;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .controles-tamanho button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+
+    .controles-tamanho button:hover {
+      background: rgba(255, 255, 255, 0.32);
+    }
+
+    .controles-tamanho button.ativo {
+      background: #00c2ff;
+      color: #07111f;
+    }
+
+    .btn-ocultar {
+      background: rgba(255, 204, 0, 0.9) !important;
+      color: #111 !important;
+    }
+
+    .controles-tamanho.oculto {
+      display: none;
+    }
+
     .caixa-video {
-      width: min(38vw, 520px);
-      height: min(70vh, 520px);
-      max-width: 90vw;
-      max-height: 70vh;
       background: rgba(0, 0, 0, 0.65);
       border-radius: 18px;
       display: flex;
@@ -70,12 +106,41 @@
       box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
       position: relative;
       z-index: 2;
+      transition: width 0.3s ease, height 0.3s ease;
+    }
+
+    .tamanho-pequeno {
+      width: min(40vw, 520px);
+      height: min(60vh, 520px);
+      max-width: 90vw;
+      max-height: 80vh;
+    }
+
+    .tamanho-medio {
+      width: min(58vw, 800px);
+      height: min(74vh, 700px);
+      max-width: 92vw;
+      max-height: 82vh;
+    }
+
+    .tamanho-grande {
+      width: min(75vw, 1000px);
+      height: min(84vh, 820px);
+      max-width: 95vw;
+      max-height: 88vh;
+    }
+
+    .tamanho-cheio {
+      width: 92vw;
+      height: 88vh;
+      max-width: 92vw;
+      max-height: 88vh;
     }
 
     .video-telao {
       width: 100%;
       height: 100%;
-      object-fit: contain; /* ESSENCIAL: não estica */
+      object-fit: contain;
       object-position: center;
       background: black;
       display: block;
@@ -96,7 +161,24 @@
       z-index: 10;
     }
 
+    .aviso-controles {
+      position: absolute;
+      right: 35px;
+      bottom: 25px;
+      z-index: 20;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.65);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
     @media (max-width: 900px) {
+      .topo-telao {
+        top: 18px;
+        left: 20px;
+      }
+
       .topo-telao h1 {
         font-size: 30px;
       }
@@ -105,26 +187,82 @@
         font-size: 18px;
       }
 
-      .caixa-video {
-        width: min(70vw, 420px);
-        height: min(60vh, 420px);
+      .controles-tamanho {
+        top: auto;
+        right: 15px;
+        left: 15px;
+        bottom: 100px;
+        justify-content: center;
+      }
+
+      .controles-tamanho button {
+        font-size: 13px;
+        padding: 9px 12px;
       }
 
       .nome-participante {
         font-size: 24px;
         padding: 14px 24px;
       }
+
+      .aviso-controles {
+        display: none;
+      }
+
+      .tamanho-pequeno {
+        width: 60vw;
+        height: 50vh;
+      }
+
+      .tamanho-medio {
+        width: 75vw;
+        height: 60vh;
+      }
+
+      .tamanho-grande {
+        width: 88vw;
+        height: 70vh;
+      }
+
+      .tamanho-cheio {
+        width: 95vw;
+        height: 78vh;
+      }
     }
   </style>
 </head>
+
 <body class="body-telao">
   <main class="telao">
+
     <div class="topo-telao">
       <h1>Ao Vivo no Telão</h1>
       <p id="statusTelao">Aguardando participante...</p>
     </div>
 
-    <div class="caixa-video">
+    <div id="controlesTamanho" class="controles-tamanho">
+      <button id="btnPequeno" onclick="mudarTamanho('pequeno')">
+        Pequeno
+      </button>
+
+      <button id="btnMedio" onclick="mudarTamanho('medio')">
+        Médio
+      </button>
+
+      <button id="btnGrande" onclick="mudarTamanho('grande')">
+        Grande
+      </button>
+
+      <button id="btnCheio" onclick="mudarTamanho('cheio')">
+        Cheio
+      </button>
+
+      <button class="btn-ocultar" onclick="ocultarControles()">
+        Ocultar
+      </button>
+    </div>
+
+    <div id="caixaVideo" class="caixa-video tamanho-medio">
       <video
         id="videoRemoto"
         class="video-telao"
@@ -137,6 +275,11 @@
     <div id="nomeParticipante" class="nome-participante">
       Nenhum participante selecionado
     </div>
+
+    <div id="avisoControles" class="aviso-controles">
+      Teclas: 1 pequeno | 2 médio | 3 grande | 4 cheio | C mostrar/ocultar
+    </div>
+
   </main>
 
   <script>
@@ -149,6 +292,14 @@
     const videoRemoto = document.getElementById("videoRemoto");
     const statusTelao = document.getElementById("statusTelao");
     const nomeParticipante = document.getElementById("nomeParticipante");
+    const caixaVideo = document.getElementById("caixaVideo");
+    const controlesTamanho = document.getElementById("controlesTamanho");
+    const avisoControles = document.getElementById("avisoControles");
+
+    const btnPequeno = document.getElementById("btnPequeno");
+    const btnMedio = document.getElementById("btnMedio");
+    const btnGrande = document.getElementById("btnGrande");
+    const btnCheio = document.getElementById("btnCheio");
 
     let pc = null;
     let participanteAtual = null;
@@ -156,37 +307,124 @@
     let candidatosPendentes = [];
 
     const iceServers = [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-      { urls: "stun:stun2.l.google.com:19302" }
+      {
+        urls: "stun:stun.l.google.com:19302"
+      },
+      {
+        urls: "stun:stun1.l.google.com:19302"
+      },
+      {
+        urls: "stun:stun2.l.google.com:19302"
+      }
     ];
 
-    socket.on("connect", () => {
+    function mudarTamanho(tamanho) {
+      caixaVideo.classList.remove(
+        "tamanho-pequeno",
+        "tamanho-medio",
+        "tamanho-grande",
+        "tamanho-cheio"
+      );
+
+      caixaVideo.classList.add("tamanho-" + tamanho);
+
+      btnPequeno.classList.remove("ativo");
+      btnMedio.classList.remove("ativo");
+      btnGrande.classList.remove("ativo");
+      btnCheio.classList.remove("ativo");
+
+      if (tamanho === "pequeno") {
+        btnPequeno.classList.add("ativo");
+      }
+
+      if (tamanho === "medio") {
+        btnMedio.classList.add("ativo");
+      }
+
+      if (tamanho === "grande") {
+        btnGrande.classList.add("ativo");
+      }
+
+      if (tamanho === "cheio") {
+        btnCheio.classList.add("ativo");
+      }
+
+      localStorage.setItem("tamanhoTelao", tamanho);
+    }
+
+    function carregarTamanhoSalvo() {
+      const tamanhoSalvo = localStorage.getItem("tamanhoTelao") || "medio";
+      mudarTamanho(tamanhoSalvo);
+    }
+
+    function ocultarControles() {
+      controlesTamanho.classList.toggle("oculto");
+
+      if (controlesTamanho.classList.contains("oculto")) {
+        avisoControles.textContent =
+          "Pressione C para mostrar os controles";
+      } else {
+        avisoControles.textContent =
+          "Teclas: 1 pequeno | 2 médio | 3 grande | 4 cheio | C mostrar/ocultar";
+      }
+    }
+
+    document.addEventListener("keydown", function(event) {
+      const tecla = event.key.toLowerCase();
+
+      if (tecla === "1") {
+        mudarTamanho("pequeno");
+      }
+
+      if (tecla === "2") {
+        mudarTamanho("medio");
+      }
+
+      if (tecla === "3") {
+        mudarTamanho("grande");
+      }
+
+      if (tecla === "4") {
+        mudarTamanho("cheio");
+      }
+
+      if (tecla === "c") {
+        ocultarControles();
+      }
+    });
+
+    carregarTamanhoSalvo();
+
+    socket.on("connect", function() {
       socket.emit("registrarTelao");
+
       statusTelao.textContent =
         "Telão conectado. Aguardando seleção do admin.";
     });
 
-    socket.on("disconnect", () => {
-      statusTelao.textContent = "Telão desconectado do servidor.";
+    socket.on("disconnect", function() {
+      statusTelao.textContent =
+        "Telão desconectado do servidor.";
     });
 
-    socket.on("telaoRegistrado", () => {
+    socket.on("telaoRegistrado", function() {
       statusTelao.textContent =
         "Telão registrado. Aguardando participante...";
     });
 
-    socket.on("iniciarVideo", async (data) => {
+    socket.on("iniciarVideo", async function(data) {
       try {
         participanteAtual = data.participante;
 
         nomeParticipante.textContent = participanteAtual.nome;
+
         statusTelao.textContent =
           "Conectando com " + participanteAtual.nome + "...";
 
         await criarConexao(participanteAtual.id);
 
         const offer = await pc.createOffer();
+
         await pc.setLocalDescription(offer);
 
         socket.emit("offer", {
@@ -195,11 +433,13 @@
         });
       } catch (erro) {
         console.error("Erro ao iniciar vídeo no telão:", erro);
-        statusTelao.textContent = "Erro ao iniciar vídeo no telão.";
+
+        statusTelao.textContent =
+          "Erro ao iniciar vídeo no telão.";
       }
     });
 
-    socket.on("answer", async (data) => {
+    socket.on("answer", async function(data) {
       try {
         if (!pc) return;
 
@@ -216,17 +456,17 @@
       }
     });
 
-    socket.on("ice-candidate", async (data) => {
+    socket.on("ice-candidate", async function(data) {
       await adicionarCandidato(data.candidate);
     });
 
-    socket.on("usuarioDesconectado", (id) => {
+    socket.on("usuarioDesconectado", function(id) {
       if (participanteAtual && participanteAtual.id === id) {
         limparTelao();
       }
     });
 
-    socket.on("limparTelao", () => {
+    socket.on("limparTelao", function() {
       limparTelao();
     });
 
@@ -240,29 +480,34 @@
       });
 
       remoteStream = new MediaStream();
+
       videoRemoto.srcObject = remoteStream;
 
       pc.addTransceiver("video", {
         direction: "recvonly"
       });
 
-      pc.ontrack = async (event) => {
+      pc.ontrack = async function(event) {
         console.log("Track recebido no telão:", event.track);
 
         remoteStream.addTrack(event.track);
+
         videoRemoto.srcObject = remoteStream;
 
         try {
           await videoRemoto.play();
-          statusTelao.textContent = "Ao vivo agora!";
+
+          statusTelao.textContent =
+            "Participante ao vivo.";
         } catch (erro) {
           console.error("Erro ao dar play no vídeo:", erro);
+
           statusTelao.textContent =
             "Imagem recebida, mas o navegador bloqueou o play.";
         }
       };
 
-      pc.onicecandidate = (event) => {
+      pc.onicecandidate = function(event) {
         if (event.candidate && idParticipante) {
           socket.emit("ice-candidate", {
             target: idParticipante,
@@ -271,13 +516,14 @@
         }
       };
 
-      pc.onconnectionstatechange = () => {
+      pc.onconnectionstatechange = function() {
         if (!pc) return;
 
         console.log("Estado telão:", pc.connectionState);
 
         if (pc.connectionState === "connected") {
-          statusTelao.textContent = "Participante ao vivo.";
+          statusTelao.textContent =
+            "Participante ao vivo.";
         }
 
         if (pc.connectionState === "failed") {
@@ -286,12 +532,14 @@
         }
 
         if (pc.connectionState === "disconnected") {
-          statusTelao.textContent = "Participante desconectado.";
+          statusTelao.textContent =
+            "Participante desconectado.";
         }
       };
 
-      pc.oniceconnectionstatechange = () => {
+      pc.oniceconnectionstatechange = function() {
         if (!pc) return;
+
         console.log("ICE telão:", pc.iceConnectionState);
       };
     }
@@ -305,7 +553,9 @@
         pc.remoteDescription.type
       ) {
         try {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          await pc.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
         } catch (erro) {
           console.error("Erro ao adicionar ICE telão:", erro);
         }
@@ -319,7 +569,9 @@
 
       for (const candidate of candidatosPendentes) {
         try {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          await pc.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
         } catch (erro) {
           console.error("Erro ao processar ICE pendente:", erro);
         }
@@ -335,9 +587,10 @@
       }
 
       if (remoteStream) {
-        remoteStream.getTracks().forEach((track) => {
+        remoteStream.getTracks().forEach(function(track) {
           track.stop();
         });
+
         remoteStream = null;
       }
     }
@@ -346,9 +599,14 @@
       fecharConexao();
 
       participanteAtual = null;
+
       videoRemoto.srcObject = null;
-      nomeParticipante.textContent = "Nenhum participante selecionado";
-      statusTelao.textContent = "Aguardando participante...";
+
+      nomeParticipante.textContent =
+        "Nenhum participante selecionado";
+
+      statusTelao.textContent =
+        "Aguardando participante...";
     }
   </script>
 </body>
