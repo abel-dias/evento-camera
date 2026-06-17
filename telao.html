@@ -16,12 +16,10 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #000;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255, 161, 76, 0.22), transparent 32%),
+        radial-gradient(circle at center, #3b1f0f 0%, #1c0e06 58%, #080402 100%);
       color: white;
-    }
-
-    .body-telao {
-      background: black;
       overflow: hidden;
     }
 
@@ -29,112 +27,399 @@
       width: 100vw;
       height: 100vh;
       position: relative;
-      background: black;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      padding: 20px;
+    }
+
+    .luzes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.65;
+      background-image:
+        radial-gradient(circle at 8% 18%, rgba(255, 220, 120, 0.28) 0 8px, transparent 9px),
+        radial-gradient(circle at 18% 72%, rgba(255, 120, 90, 0.20) 0 7px, transparent 8px),
+        radial-gradient(circle at 78% 22%, rgba(255, 220, 120, 0.24) 0 8px, transparent 9px),
+        radial-gradient(circle at 88% 78%, rgba(255, 120, 90, 0.20) 0 7px, transparent 8px),
+        radial-gradient(circle at 55% 12%, rgba(255, 230, 150, 0.18) 0 8px, transparent 9px);
     }
 
     .topo-telao {
       position: absolute;
-      top: 25px;
-      left: 35px;
-      z-index: 10;
+      top: 24px;
+      left: 30px;
+      z-index: 20;
       text-shadow: 0 3px 10px rgba(0, 0, 0, 0.8);
     }
 
     .topo-telao h1 {
       margin: 0;
-      font-size: 42px;
+      font-size: 36px;
+      color: #fff;
     }
 
     .topo-telao p {
       margin: 8px 0 0;
-      font-size: 22px;
-      color: #ffdf7e;
+      font-size: 19px;
+      color: #ffe07a;
+      font-weight: bold;
     }
 
-    .controles-tamanho {
+    .botao-ajustes {
       position: absolute;
-      top: 25px;
-      right: 35px;
-      z-index: 20;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .controles-tamanho button {
+      top: 24px;
+      right: 30px;
+      z-index: 40;
       border: none;
       border-radius: 999px;
-      padding: 10px 16px;
-      background: rgba(255, 255, 255, 0.18);
-      color: white;
+      padding: 12px 18px;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
       backdrop-filter: blur(8px);
     }
 
-    .controles-tamanho button:hover {
-      background: rgba(255, 255, 255, 0.32);
+    .botao-ajustes:hover {
+      background: rgba(0, 0, 0, 0.88);
     }
 
-    .controles-tamanho button.ativo {
+    .painel-ajustes {
+      position: absolute;
+      top: 80px;
+      right: 30px;
+      z-index: 40;
+      width: 260px;
+      background: rgba(18, 10, 6, 0.94);
+      border: 2px solid rgba(255, 215, 120, 0.35);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      display: none;
+    }
+
+    .painel-ajustes.aberto {
+      display: block;
+    }
+
+    .painel-ajustes h3 {
+      margin: 0 0 14px 0;
+      font-size: 18px;
+      color: #ffe07a;
+    }
+
+    .grupo-botoes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .grupo-botoes button,
+    .fechar-painel {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .grupo-botoes button {
+      background: rgba(255, 255, 255, 0.14);
+      color: white;
+    }
+
+    .grupo-botoes button:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .grupo-botoes button.ativo {
       background: #00c2ff;
       color: #07111f;
     }
 
-    .btn-ocultar {
-      background: rgba(255, 204, 0, 0.9) !important;
-      color: #111 !important;
+    .fechar-painel {
+      margin-top: 14px;
+      width: 100%;
+      background: #ffcc00;
+      color: #161616;
     }
 
-    .controles-tamanho.oculto {
-      display: none;
+    .atalhos {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.75);
     }
 
-    .caixa-video {
-      background: rgba(0, 0, 0, 0.65);
-      border-radius: 18px;
+    .area-video {
+      position: relative;
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+      padding-top: 55px;
+    }
+
+    .moldura-festa {
       position: relative;
-      z-index: 2;
+      padding: 86px 34px 38px 34px;
+      border-radius: 30px;
+      background:
+        linear-gradient(145deg, #9d4e1e, #6e2f0b);
+      box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.50),
+        inset 0 0 0 4px rgba(255, 214, 143, 0.22),
+        inset 0 0 0 10px rgba(88, 36, 12, 0.55);
+      border: 6px solid #4b1f07;
+    }
+
+    .placa-arraia {
+      position: absolute;
+      top: -58px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(82%, 720px);
+      min-height: 92px;
+      background:
+        linear-gradient(180deg, #f8d78b 0%, #d88935 58%, #9e4c18 100%);
+      border: 5px solid #5d2709;
+      border-radius: 22px;
+      box-shadow:
+        0 10px 25px rgba(0,0,0,0.45),
+        inset 0 0 0 3px rgba(255,255,255,0.20);
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px 22px;
+    }
+
+    .placa-arraia::before,
+    .placa-arraia::after {
+      content: "";
+      position: absolute;
+      top: 18px;
+      width: 18px;
+      height: 18px;
+      background: #5d2709;
+      border-radius: 50%;
+      box-shadow: inset 0 2px 2px rgba(255,255,255,0.22);
+    }
+
+    .placa-arraia::before {
+      left: 24px;
+    }
+
+    .placa-arraia::after {
+      right: 24px;
+    }
+
+    .placa-arraia h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(30px, 4vw, 58px);
+      line-height: 1;
+      color: #5a2107;
+      text-shadow: 1px 2px 0 rgba(255, 236, 170, 0.65);
+    }
+
+    .placa-arraia span {
+      margin-top: 4px;
+      font-size: clamp(13px, 1.5vw, 20px);
+      font-weight: bold;
+      color: #fff2b8;
+      text-shadow: 0 2px 3px rgba(0,0,0,0.55);
+      letter-spacing: 1px;
+    }
+
+    .bandeirinhas {
+      position: absolute;
+      top: 42px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      height: 42px;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .bandeirinhas::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 3%;
+      right: 3%;
+      height: 3px;
+      background: rgba(255, 236, 170, 0.9);
+      border-radius: 999px;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.35);
+    }
+
+    .bandeirinhas span {
+      margin-top: 3px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 28px solid red;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.35));
+    }
+
+    .bandeirinhas span:nth-child(1) { border-top-color: #ff5252; }
+    .bandeirinhas span:nth-child(2) { border-top-color: #ffd54f; }
+    .bandeirinhas span:nth-child(3) { border-top-color: #4fc3f7; }
+    .bandeirinhas span:nth-child(4) { border-top-color: #66bb6a; }
+    .bandeirinhas span:nth-child(5) { border-top-color: #ff8a65; }
+    .bandeirinhas span:nth-child(6) { border-top-color: #ba68c8; }
+    .bandeirinhas span:nth-child(7) { border-top-color: #ffd54f; }
+    .bandeirinhas span:nth-child(8) { border-top-color: #ef5350; }
+    .bandeirinhas span:nth-child(9) { border-top-color: #4db6ac; }
+    .bandeirinhas span:nth-child(10) { border-top-color: #ffb74d; }
+    .bandeirinhas span:nth-child(11) { border-top-color: #81c784; }
+    .bandeirinhas span:nth-child(12) { border-top-color: #64b5f6; }
+
+    .balao {
+      position: absolute;
+      width: 62px;
+      height: 78px;
+      background: #e53935;
+      border-radius: 50% 50% 48% 48%;
+      z-index: 4;
+      box-shadow:
+        inset -10px -12px 0 rgba(0,0,0,0.16),
+        0 8px 16px rgba(0,0,0,0.35);
+    }
+
+    .balao::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -14px;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 18px solid currentColor;
+    }
+
+    .balao::before {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 14px;
+      width: 16px;
+      height: 22px;
+      background: rgba(255,255,255,0.35);
+      border-radius: 50%;
+      transform: rotate(25deg);
+    }
+
+    .balao-esq {
+      left: -38px;
+      top: 95px;
+      background: #ffcc33;
+      color: #ffcc33;
+      transform: rotate(-14deg);
+    }
+
+    .balao-dir {
+      right: -36px;
+      top: 128px;
+      background: #29b6f6;
+      color: #29b6f6;
+      transform: rotate(12deg);
+    }
+
+    .milho {
+      position: absolute;
+      bottom: 18px;
+      width: 46px;
+      height: 90px;
+      background: #f6c344;
+      border-radius: 50% 50% 42% 42%;
+      z-index: 5;
+      box-shadow: inset -8px -8px 0 rgba(0,0,0,0.15);
+    }
+
+    .milho::before,
+    .milho::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      width: 34px;
+      height: 58px;
+      background: #3e8c3f;
+      border-radius: 80% 10% 80% 10%;
+      transform-origin: bottom center;
+      z-index: -1;
+    }
+
+    .milho::before {
+      left: -18px;
+      transform: rotate(-24deg);
+    }
+
+    .milho::after {
+      right: -18px;
+      transform: rotate(24deg) scaleX(-1);
+    }
+
+    .milho-esq {
+      left: 18px;
+      transform: rotate(-12deg);
+    }
+
+    .milho-dir {
+      right: 18px;
+      transform: rotate(12deg);
+    }
+
+    .janela-video {
+      position: relative;
+      background: #000;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,0.08),
+        0 8px 18px rgba(0,0,0,0.35);
       transition: width 0.3s ease, height 0.3s ease;
+      z-index: 5;
     }
 
     .tamanho-pequeno {
-      width: min(40vw, 520px);
-      height: min(60vh, 520px);
-      max-width: 90vw;
-      max-height: 80vh;
+      width: min(36vw, 480px);
+      height: min(52vh, 430px);
     }
 
     .tamanho-medio {
-      width: min(58vw, 800px);
-      height: min(74vh, 700px);
-      max-width: 92vw;
-      max-height: 82vh;
+      width: min(50vw, 680px);
+      height: min(66vh, 560px);
     }
 
     .tamanho-grande {
-      width: min(75vw, 1000px);
-      height: min(84vh, 820px);
-      max-width: 95vw;
-      max-height: 88vh;
+      width: min(64vw, 900px);
+      height: min(76vh, 680px);
     }
 
     .tamanho-cheio {
-      width: 92vw;
-      height: 88vh;
-      max-width: 92vw;
-      max-height: 88vh;
+      width: min(78vw, 1100px);
+      height: min(82vh, 760px);
     }
 
     .video-telao {
@@ -148,138 +433,203 @@
 
     .nome-participante {
       position: absolute;
-      bottom: 35px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.72);
-      padding: 18px 36px;
+      background: rgba(20, 10, 6, 0.82);
+      border: 2px solid rgba(255, 214, 143, 0.28);
+      padding: 16px 32px;
       border-radius: 999px;
-      font-size: 34px;
+      font-size: 32px;
       font-weight: bold;
       text-align: center;
-      max-width: 90vw;
-      z-index: 10;
+      max-width: 88vw;
+      z-index: 20;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     }
 
-    .aviso-controles {
+    .dica-teclado {
       position: absolute;
-      right: 35px;
-      bottom: 25px;
+      left: 30px;
+      bottom: 22px;
       z-index: 20;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.65);
-      background: rgba(0, 0, 0, 0.4);
+      font-size: 13px;
+      color: rgba(255,255,255,0.72);
+      background: rgba(0,0,0,0.35);
       padding: 8px 12px;
       border-radius: 999px;
     }
 
     @media (max-width: 900px) {
       .topo-telao {
-        top: 18px;
-        left: 20px;
+        top: 16px;
+        left: 16px;
       }
 
       .topo-telao h1 {
-        font-size: 30px;
+        font-size: 26px;
       }
 
       .topo-telao p {
-        font-size: 18px;
+        font-size: 15px;
       }
 
-      .controles-tamanho {
-        top: auto;
-        right: 15px;
-        left: 15px;
-        bottom: 100px;
-        justify-content: center;
-      }
-
-      .controles-tamanho button {
+      .botao-ajustes {
+        top: 16px;
+        right: 16px;
+        padding: 10px 14px;
         font-size: 13px;
-        padding: 9px 12px;
+      }
+
+      .painel-ajustes {
+        top: 62px;
+        right: 16px;
+        width: 220px;
+      }
+
+      .area-video {
+        padding-top: 45px;
+      }
+
+      .placa-arraia {
+        top: -48px;
+        width: 88%;
+        min-height: 78px;
+        padding: 8px 18px;
+      }
+
+      .placa-arraia h2 {
+        font-size: 29px;
+      }
+
+      .placa-arraia span {
+        font-size: 13px;
+      }
+
+      .moldura-festa {
+        padding: 72px 20px 26px 20px;
+      }
+
+      .bandeirinhas {
+        top: 34px;
+      }
+
+      .bandeirinhas span {
+        border-left-width: 10px;
+        border-right-width: 10px;
+        border-top-width: 20px;
+      }
+
+      .balao,
+      .milho {
+        display: none;
       }
 
       .nome-participante {
-        font-size: 24px;
-        padding: 14px 24px;
+        font-size: 22px;
+        padding: 12px 22px;
+        bottom: 18px;
       }
 
-      .aviso-controles {
+      .dica-teclado {
         display: none;
       }
 
       .tamanho-pequeno {
-        width: 60vw;
-        height: 50vh;
+        width: 62vw;
+        height: 42vh;
       }
 
       .tamanho-medio {
-        width: 75vw;
-        height: 60vh;
+        width: 78vw;
+        height: 54vh;
       }
 
       .tamanho-grande {
         width: 88vw;
-        height: 70vh;
+        height: 62vh;
       }
 
       .tamanho-cheio {
-        width: 95vw;
-        height: 78vh;
+        width: 94vw;
+        height: 70vh;
       }
     }
   </style>
 </head>
 
-<body class="body-telao">
+<body>
   <main class="telao">
+    <div class="luzes"></div>
 
     <div class="topo-telao">
       <h1>Ao Vivo no Telão</h1>
       <p id="statusTelao">Aguardando participante...</p>
     </div>
 
-    <div id="controlesTamanho" class="controles-tamanho">
-      <button id="btnPequeno" onclick="mudarTamanho('pequeno')">
-        Pequeno
-      </button>
+    <button class="botao-ajustes" onclick="alternarPainel()">
+      ⚙ Ajustes
+    </button>
 
-      <button id="btnMedio" onclick="mudarTamanho('medio')">
-        Médio
-      </button>
+    <div id="painelAjustes" class="painel-ajustes">
+      <h3>Tamanho da câmera</h3>
 
-      <button id="btnGrande" onclick="mudarTamanho('grande')">
-        Grande
-      </button>
+      <div class="grupo-botoes">
+        <button id="btnPequeno" onclick="mudarTamanho('pequeno')">Pequeno</button>
+        <button id="btnMedio" onclick="mudarTamanho('medio')">Médio</button>
+        <button id="btnGrande" onclick="mudarTamanho('grande')">Grande</button>
+        <button id="btnCheio" onclick="mudarTamanho('cheio')">Cheio</button>
+      </div>
 
-      <button id="btnCheio" onclick="mudarTamanho('cheio')">
-        Cheio
-      </button>
+      <button class="fechar-painel" onclick="fecharPainel()">Fechar</button>
 
-      <button class="btn-ocultar" onclick="ocultarControles()">
-        Ocultar
-      </button>
+      <div class="atalhos">
+        Teclado:<br>
+        1 = Pequeno<br>
+        2 = Médio<br>
+        3 = Grande<br>
+        4 = Cheio
+      </div>
     </div>
 
-    <div id="caixaVideo" class="caixa-video tamanho-medio">
-      <video
-        id="videoRemoto"
-        class="video-telao"
-        autoplay
-        muted
-        playsinline
-      ></video>
+    <div class="area-video">
+      <div class="moldura-festa">
+
+        <div class="placa-arraia">
+          <h2>Arraiá do Colégio Lucia Alves</h2>
+          <span>ao vivo no telão</span>
+        </div>
+
+        <div class="bandeirinhas">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="balao balao-esq"></div>
+        <div class="balao balao-dir"></div>
+
+        <div class="milho milho-esq"></div>
+        <div class="milho milho-dir"></div>
+
+        <div id="caixaVideo" class="janela-video tamanho-medio">
+          <video
+            id="videoRemoto"
+            class="video-telao"
+            autoplay
+            muted
+            playsinline
+          ></video>
+        </div>
+      </div>
     </div>
 
     <div id="nomeParticipante" class="nome-participante">
       Nenhum participante selecionado
     </div>
 
-    <div id="avisoControles" class="aviso-controles">
-      Teclas: 1 pequeno | 2 médio | 3 grande | 4 cheio | C mostrar/ocultar
+    <div class="dica-teclado">
+      Use 1, 2, 3 ou 4 para mudar o tamanho
     </div>
-
   </main>
 
   <script>
@@ -293,8 +643,7 @@
     const statusTelao = document.getElementById("statusTelao");
     const nomeParticipante = document.getElementById("nomeParticipante");
     const caixaVideo = document.getElementById("caixaVideo");
-    const controlesTamanho = document.getElementById("controlesTamanho");
-    const avisoControles = document.getElementById("avisoControles");
+    const painelAjustes = document.getElementById("painelAjustes");
 
     const btnPequeno = document.getElementById("btnPequeno");
     const btnMedio = document.getElementById("btnMedio");
@@ -307,16 +656,18 @@
     let candidatosPendentes = [];
 
     const iceServers = [
-      {
-        urls: "stun:stun.l.google.com:19302"
-      },
-      {
-        urls: "stun:stun1.l.google.com:19302"
-      },
-      {
-        urls: "stun:stun2.l.google.com:19302"
-      }
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" }
     ];
+
+    function alternarPainel() {
+      painelAjustes.classList.toggle("aberto");
+    }
+
+    function fecharPainel() {
+      painelAjustes.classList.remove("aberto");
+    }
 
     function mudarTamanho(tamanho) {
       caixaVideo.classList.remove(
@@ -333,21 +684,10 @@
       btnGrande.classList.remove("ativo");
       btnCheio.classList.remove("ativo");
 
-      if (tamanho === "pequeno") {
-        btnPequeno.classList.add("ativo");
-      }
-
-      if (tamanho === "medio") {
-        btnMedio.classList.add("ativo");
-      }
-
-      if (tamanho === "grande") {
-        btnGrande.classList.add("ativo");
-      }
-
-      if (tamanho === "cheio") {
-        btnCheio.classList.add("ativo");
-      }
+      if (tamanho === "pequeno") btnPequeno.classList.add("ativo");
+      if (tamanho === "medio") btnMedio.classList.add("ativo");
+      if (tamanho === "grande") btnGrande.classList.add("ativo");
+      if (tamanho === "cheio") btnCheio.classList.add("ativo");
 
       localStorage.setItem("tamanhoTelao", tamanho);
     }
@@ -357,39 +697,22 @@
       mudarTamanho(tamanhoSalvo);
     }
 
-    function ocultarControles() {
-      controlesTamanho.classList.toggle("oculto");
-
-      if (controlesTamanho.classList.contains("oculto")) {
-        avisoControles.textContent =
-          "Pressione C para mostrar os controles";
-      } else {
-        avisoControles.textContent =
-          "Teclas: 1 pequeno | 2 médio | 3 grande | 4 cheio | C mostrar/ocultar";
-      }
-    }
-
     document.addEventListener("keydown", function(event) {
       const tecla = event.key.toLowerCase();
 
-      if (tecla === "1") {
-        mudarTamanho("pequeno");
-      }
+      if (tecla === "1") mudarTamanho("pequeno");
+      if (tecla === "2") mudarTamanho("medio");
+      if (tecla === "3") mudarTamanho("grande");
+      if (tecla === "4") mudarTamanho("cheio");
+      if (tecla === "escape") fecharPainel();
+    });
 
-      if (tecla === "2") {
-        mudarTamanho("medio");
-      }
+    document.addEventListener("click", function(event) {
+      const clicouNoPainel = painelAjustes.contains(event.target);
+      const clicouNoBotao = event.target.closest(".botao-ajustes");
 
-      if (tecla === "3") {
-        mudarTamanho("grande");
-      }
-
-      if (tecla === "4") {
-        mudarTamanho("cheio");
-      }
-
-      if (tecla === "c") {
-        ocultarControles();
+      if (!clicouNoPainel && !clicouNoBotao) {
+        fecharPainel();
       }
     });
 
@@ -397,34 +720,26 @@
 
     socket.on("connect", function() {
       socket.emit("registrarTelao");
-
-      statusTelao.textContent =
-        "Telão conectado. Aguardando seleção do admin.";
+      statusTelao.textContent = "Telão conectado. Aguardando seleção do admin.";
     });
 
     socket.on("disconnect", function() {
-      statusTelao.textContent =
-        "Telão desconectado do servidor.";
+      statusTelao.textContent = "Telão desconectado do servidor.";
     });
 
     socket.on("telaoRegistrado", function() {
-      statusTelao.textContent =
-        "Telão registrado. Aguardando participante...";
+      statusTelao.textContent = "Telão registrado. Aguardando participante...";
     });
 
     socket.on("iniciarVideo", async function(data) {
       try {
         participanteAtual = data.participante;
-
         nomeParticipante.textContent = participanteAtual.nome;
-
-        statusTelao.textContent =
-          "Conectando com " + participanteAtual.nome + "...";
+        statusTelao.textContent = "Conectando com " + participanteAtual.nome + "...";
 
         await criarConexao(participanteAtual.id);
 
         const offer = await pc.createOffer();
-
         await pc.setLocalDescription(offer);
 
         socket.emit("offer", {
@@ -433,9 +748,7 @@
         });
       } catch (erro) {
         console.error("Erro ao iniciar vídeo no telão:", erro);
-
-        statusTelao.textContent =
-          "Erro ao iniciar vídeo no telão.";
+        statusTelao.textContent = "Erro ao iniciar vídeo no telão.";
       }
     });
 
@@ -449,8 +762,7 @@
 
         await processarCandidatosPendentes();
 
-        statusTelao.textContent =
-          "Resposta recebida. Aguardando imagem...";
+        statusTelao.textContent = "Resposta recebida. Aguardando imagem...";
       } catch (erro) {
         console.error("Erro ao receber answer:", erro);
       }
@@ -480,7 +792,6 @@
       });
 
       remoteStream = new MediaStream();
-
       videoRemoto.srcObject = remoteStream;
 
       pc.addTransceiver("video", {
@@ -488,22 +799,15 @@
       });
 
       pc.ontrack = async function(event) {
-        console.log("Track recebido no telão:", event.track);
-
         remoteStream.addTrack(event.track);
-
         videoRemoto.srcObject = remoteStream;
 
         try {
           await videoRemoto.play();
-
-          statusTelao.textContent =
-            "Participante ao vivo.";
+          statusTelao.textContent = "Participante ao vivo.";
         } catch (erro) {
           console.error("Erro ao dar play no vídeo:", erro);
-
-          statusTelao.textContent =
-            "Imagem recebida, mas o navegador bloqueou o play.";
+          statusTelao.textContent = "Imagem recebida, mas o navegador bloqueou o play.";
         }
       };
 
@@ -519,28 +823,17 @@
       pc.onconnectionstatechange = function() {
         if (!pc) return;
 
-        console.log("Estado telão:", pc.connectionState);
-
         if (pc.connectionState === "connected") {
-          statusTelao.textContent =
-            "Participante ao vivo.";
+          statusTelao.textContent = "Participante ao vivo.";
         }
 
         if (pc.connectionState === "failed") {
-          statusTelao.textContent =
-            "Falha na conexão de vídeo. Tente selecionar novamente.";
+          statusTelao.textContent = "Falha na conexão de vídeo. Tente selecionar novamente.";
         }
 
         if (pc.connectionState === "disconnected") {
-          statusTelao.textContent =
-            "Participante desconectado.";
+          statusTelao.textContent = "Participante desconectado.";
         }
-      };
-
-      pc.oniceconnectionstatechange = function() {
-        if (!pc) return;
-
-        console.log("ICE telão:", pc.iceConnectionState);
       };
     }
 
@@ -590,23 +883,16 @@
         remoteStream.getTracks().forEach(function(track) {
           track.stop();
         });
-
         remoteStream = null;
       }
     }
 
     function limparTelao() {
       fecharConexao();
-
       participanteAtual = null;
-
       videoRemoto.srcObject = null;
-
-      nomeParticipante.textContent =
-        "Nenhum participante selecionado";
-
-      statusTelao.textContent =
-        "Aguardando participante...";
+      nomeParticipante.textContent = "Nenhum participante selecionado";
+      statusTelao.textContent = "Aguardando participante...";
     }
   </script>
 </body>
