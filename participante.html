@@ -141,6 +141,8 @@ socket.on(
 
 socket.on("offer", async (data)=>{
 
+    console.log("Recebeu OFFER", data);
+
     if(pc){
 
         pc.close();
