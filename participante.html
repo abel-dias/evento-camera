@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+    <title>Participante</title>
+</head>
+
+<body>
+
+<h1>Entrar na fila</h1>
+
+<input id="nome" placeholder="Digite seu nome">
+
+<button onclick="entrar()">
+Entrar
+</button>
+
+<p id="status"></p>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+<script>
+
+const socket =
+io("https://evento-camera-server.onrender.com");
+
+function entrar(){
+
+    const nome =
+    document.getElementById("nome").value;
+
+    socket.emit("entrar",{
+        nome
+    });
+
+    document.getElementById("status")
+    .innerHTML =
+    "Você entrou na fila.";
+
+}
+
+</script>
+
+</body>
+</html>
