@@ -1,163 +1,194 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telão</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-body{
-    margin:0;
-    background:black;
-    overflow:hidden;
-}
+  <title>Telão do Evento</title>
 
-video{
-    width:100vw;
-    height:100vh;
-    object-fit:cover;
-    background:black;
-}
+  <link rel="stylesheet" href="style.css" />
 
-#status{
-    position:absolute;
-    top:20px;
-    left:20px;
-    color:white;
-    background:rgba(0,0,0,.6);
-    padding:10px;
-    border-radius:10px;
-    font-family:Arial;
-}
-</style>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
 </head>
-<body>
+<body class="body-telao">
+  <main class="telao">
+    <div class="topo-telao">
+      <h1>Ao Vivo no Telão</h1>
+      <p id="statusTelao">Aguardando participante...</p>
+    </div>
 
-<div id="status">
-Aguardando participante...
-</div>
+    <video
+      id="videoRemoto"
+      class="video-telao"
+      autoplay
+      playsinline
+    ></video>
 
-<video
-id="video"
-autoplay
-playsinline>
-</video>
+    <div id="nomeParticipante" class="nome-participante">
+      Nenhum participante selecionado
+    </div>
+  </main>
 
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script>
+    const SERVER_URL = "https://evento-camera-server.onrender.com";
 
-<script>
-
-const socket =
-io("https://evento-camera-server.onrender.com");
-
-socket.emit("registrarTelao");
-
-let pc = null;
-
-const video =
-document.getElementById("video");
-
-socket.on("iniciarVideo", async (participanteId)=>{
-
-    document.getElementById("status")
-    .innerHTML =
-    "Conectando...";
-
-    if(pc){
-
-        pc.close();
-
-    }
-
-    pc = new RTCPeerConnection({
-
-        iceServers:[
-            {
-                urls:"stun:stun.l.google.com:19302"
-            }
-        ]
-
+    const socket = io(SERVER_URL, {
+      transports: ["websocket", "polling"]
     });
 
-    pc.ontrack = (event)=>{
+    const videoRemoto = document.getElementById("videoRemoto");
+    const statusTelao = document.getElementById("statusTelao");
+    const nomeParticipante = document.getElementById("nomeParticipante");
 
-        video.srcObject =
-        event.streams[0];
+    let pc = null;
+    let participanteAtual = null;
 
-        document.getElementById("status")
-        .innerHTML =
-        "AO VIVO";
+    const iceServers = [
+      {
+        urls: "stun:stun.l.google.com:19302"
+      },
+      {
+        urls: "stun:stun1.l.google.com:19302"
+      }
+    ];
 
-    };
+    socket.on("connect", () => {
+      socket.emit("registrarTelao");
 
-    pc.onicecandidate = (event)=>{
+      statusTelao.textContent =
+        "Telão conectado. Aguardando seleção do admin.";
+    });
 
-    if(event.candidate){
+    socket.on("disconnect", () => {
+      statusTelao.textContent = "Telão desconectado do servidor.";
+    });
 
-        console.log(
-            "ICE TELAO",
-            event.candidate
+    socket.on("telaoRegistrado", () => {
+      statusTelao.textContent =
+        "Telão registrado. Aguardando participante...";
+    });
+
+    socket.on("iniciarVideo", async (data) => {
+      try {
+        participanteAtual = data.participante;
+
+        nomeParticipante.textContent = participanteAtual.nome;
+
+        statusTelao.textContent =
+          "Conectando com " + participanteAtual.nome + "...";
+
+        await criarConexao(participanteAtual.id);
+
+        const offer = await pc.createOffer();
+
+        await pc.setLocalDescription(offer);
+
+        socket.emit("offer", {
+          target: participanteAtual.id,
+          offer: offer
+        });
+      } catch (erro) {
+        console.error("Erro ao iniciar vídeo no telão:", erro);
+
+        statusTelao.textContent =
+          "Erro ao iniciar vídeo no telão.";
+      }
+    });
+
+    socket.on("answer", async (data) => {
+      try {
+        if (!pc) return;
+
+        await pc.setRemoteDescription(
+          new RTCSessionDescription(data.answer)
         );
 
-        socket.emit(
-            "ice-candidate",
-            {
-                target:participanteId,
-                candidate:event.candidate
-            }
-        );
+        statusTelao.textContent = "Participante ao vivo.";
+      } catch (erro) {
+        console.error("Erro ao receber answer:", erro);
+      }
+    });
 
-    }
-
-};
-
-    const offer =
-    await pc.createOffer();
-
-    await pc.setLocalDescription(
-        offer
-    );
-
-    socket.emit(
-        "offer",
-        {
-            target:participanteId,
-            offer
+    socket.on("ice-candidate", async (data) => {
+      try {
+        if (pc && data.candidate) {
+          await pc.addIceCandidate(
+            new RTCIceCandidate(data.candidate)
+          );
         }
-    );
+      } catch (erro) {
+        console.error("Erro ICE telão:", erro);
+      }
+    });
 
-});
+    socket.on("usuarioDesconectado", (id) => {
+      if (participanteAtual && participanteAtual.id === id) {
+        limparTelao();
+      }
+    });
 
-socket.on("answer", async (data)=>{
+    socket.on("limparTelao", () => {
+      limparTelao();
+    });
 
-    console.log("Recebeu ANSWER", data);
+    async function criarConexao(idParticipante) {
+      fecharConexao();
 
-    await pc.setRemoteDescription(
-        new RTCSessionDescription(
-            data.answer
-        )
-    );
+      pc = new RTCPeerConnection({
+        iceServers: iceServers
+      });
 
-});
+      pc.addTransceiver("video", {
+        direction: "recvonly"
+      });
 
-socket.on(
-"ice-candidate",
-async(data)=>{
+      pc.ontrack = (event) => {
+        videoRemoto.srcObject = event.streams[0];
 
-    if(pc){
+        statusTelao.textContent = "Ao vivo agora!";
+      };
 
-        await pc.addIceCandidate(
-            new RTCIceCandidate(
-                data.candidate
-            )
-        );
+      pc.onicecandidate = (event) => {
+        if (event.candidate && idParticipante) {
+          socket.emit("ice-candidate", {
+            target: idParticipante,
+            candidate: event.candidate
+          });
+        }
+      };
 
+      pc.onconnectionstatechange = () => {
+        if (!pc) return;
+
+        if (pc.connectionState === "connected") {
+          statusTelao.textContent = "Participante ao vivo.";
+        }
+
+        if (
+          pc.connectionState === "failed" ||
+          pc.connectionState === "disconnected" ||
+          pc.connectionState === "closed"
+        ) {
+          statusTelao.textContent = "Transmissão encerrada.";
+        }
+      };
     }
 
-});
+    function fecharConexao() {
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+    }
 
-</script>
+    function limparTelao() {
+      fecharConexao();
 
+      participanteAtual = null;
+      videoRemoto.srcObject = null;
+      nomeParticipante.textContent = "Nenhum participante selecionado";
+      statusTelao.textContent = "Aguardando participante...";
+    }
+  </script>
 </body>
 </html>
