@@ -1,21 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 
 <head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Telão</title>
 
 <style>
 
 body{
+    margin:0;
     background:black;
+    overflow:hidden;
     color:white;
     font-family:Arial;
-    text-align:center;
 }
 
-#nome{
-    font-size:80px;
-    margin-top:100px;
+#video{
+    width:100vw;
+    height:100vh;
+    object-fit:cover;
+    background:#111;
+}
+
+#status{
+
+    position:absolute;
+    top:20px;
+    left:20px;
+
+    background:rgba(0,0,0,.6);
+
+    padding:10px 20px;
+
+    border-radius:8px;
+
+    font-size:20px;
+
 }
 
 </style>
@@ -24,9 +47,15 @@ body{
 
 <body>
 
-<div id="nome">
-Aguardando...
+<div id="status">
+Aguardando participante...
 </div>
+
+<video
+id="video"
+autoplay
+playsinline>
+</video>
 
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
@@ -35,17 +64,36 @@ Aguardando...
 const socket =
 io("https://evento-camera-server.onrender.com");
 
+socket.on("connect",()=>{
+
+    socket.emit(
+        "registrarTelao"
+    );
+
+    console.log(
+        "Telão registrado"
+    );
+
+});
+
 socket.on(
-"participanteSelecionado",
+"iniciarVideo",
 (id)=>{
 
-document.getElementById("nome")
-.innerHTML=
-"Participante selecionado:<br>"+id;
+    console.log(
+        "Participante selecionado:",
+        id
+    );
+
+    document
+        .getElementById("status")
+        .innerHTML =
+        "Participante selecionado:<br>" + id;
 
 });
 
 </script>
 
 </body>
+
 </html>
