@@ -639,14 +639,44 @@
         width: 86%;
       }
 
-      .titulo-arraia {
-        font-size: 30px;
-      }
+     .titulo-arraia {
+  margin: 0;
+  font-family: "FonteJunina", Georgia, "Times New Roman", serif !important;
+  font-size: clamp(40px, 5vw, 72px);
+  white-space: nowrap;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #e94735 0%,
+    #f2b52f 25%,
+    #5ca73b 50%,
+    #2d63b5 75%,
+    #d74a33 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow:
+    0 3px 0 rgba(45, 22, 8, 0.70),
+    1px 1px 0 rgba(255, 243, 208, 0.10);
+}
 
       .subtitulo-escola {
-        font-size: 13px;
-        padding: 8px 12px;
-      }
+  margin-top: 10px;
+  display: inline-block;
+  background: #113769;
+  border: 3px dashed #d9a642;
+  border-radius: 16px;
+  color: #fff3d1;
+  font-family: "FonteJunina", Arial, sans-serif !important;
+  font-weight: bold;
+  font-size: clamp(16px, 1.8vw, 26px);
+  padding: 12px 22px;
+  line-height: 1.2;
+  letter-spacing: 2px;
+}
 
       .chapeu-palha,
       .balao-junino,
