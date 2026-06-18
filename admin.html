@@ -133,6 +133,11 @@
       background: #ffcc00;
     }
 
+    .btn-sorteio {
+      background: #8cff66;
+      color: #10200b;
+    }
+
     .btn-sair {
       background: #ff7676;
       color: #111;
@@ -168,11 +173,18 @@
       padding: 14px;
       box-shadow: 0 12px 35px rgba(0, 0, 0, 0.30);
       border: 2px solid transparent;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .card-camera.selecionado {
       border-color: #00c2ff;
       box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.25);
+    }
+
+    .card-camera.sorteando {
+      border-color: #8cff66;
+      box-shadow: 0 0 0 4px rgba(140, 255, 102, 0.35);
+      transform: scale(1.04);
     }
 
     .preview-wrap {
@@ -275,6 +287,10 @@
       </div>
 
       <div class="botoes-topo">
+        <button id="btnSortear" class="btn btn-sorteio">
+          🎲 Sortear câmera
+        </button>
+
         <button id="btnParar" class="btn btn-secundario">
           Limpar telão
         </button>
@@ -287,7 +303,8 @@
 
     <div class="aviso">
       As miniaturas aparecem quando o participante permite a câmera no celular.
-      Clique em <strong>Colocar no telão</strong> para escolher quem será exibido.
+      Clique em <strong>Colocar no telão</strong> para escolher alguém ou use
+      <strong>Sortear câmera</strong> para mandar uma câmera aleatória para o telão.
     </div>
 
     <div id="fila" class="grid-cameras"></div>
@@ -310,10 +327,13 @@
     const filaEl = document.getElementById("fila");
     const vazioEl = document.getElementById("vazio");
     const btnParar = document.getElementById("btnParar");
+    const btnSortear = document.getElementById("btnSortear");
 
     let socket = null;
     let selecionadoAtual = null;
     let adminIniciado = false;
+    let participantesAtuais = [];
+    let sorteioRodando = false;
 
     const conexoes = {};
     const remoteStreams = {};
@@ -351,6 +371,8 @@
       }
 
       adminIniciado = false;
+      participantesAtuais = [];
+      selecionadoAtual = null;
 
       adminConteudo.classList.add("admin-bloqueado");
       telaSenha.style.display = "flex";
@@ -397,7 +419,8 @@
       });
 
       socket.on("fila", async (participantes) => {
-        await renderizarFila(participantes);
+        participantesAtuais = participantes || [];
+        await renderizarFila(participantesAtuais);
       });
 
       socket.on("participanteSelecionado", (participante) => {
@@ -436,6 +459,7 @@
 
       socket.on("usuarioDesconectado", (id) => {
         removerPreview(id);
+        participantesAtuais = participantesAtuais.filter((p) => p.id !== id);
       });
     }
 
@@ -449,6 +473,99 @@
 
       atualizarCardSelecionado();
     });
+
+    btnSortear.addEventListener("click", () => {
+      sortearCamera();
+    });
+
+    function sortearCamera() {
+      if (sorteioRodando) return;
+
+      if (!socket) {
+        alert("Admin ainda não está conectado.");
+        return;
+      }
+
+      if (!participantesAtuais || participantesAtuais.length === 0) {
+        alert("Não há participantes para sortear.");
+        return;
+      }
+
+      sorteioRodando = true;
+      btnSortear.disabled = true;
+      btnSortear.textContent = "🎲 Sorteando...";
+
+      statusAdmin.textContent = "Sorteando uma câmera...";
+
+      const candidatos =
+        participantesAtuais.length > 1
+          ? participantesAtuais.filter((p) => p.id !== selecionadoAtual)
+          : participantesAtuais;
+
+      const listaSorteio = candidatos.length > 0 ? candidatos : participantesAtuais;
+
+      let voltas = 0;
+      const totalVoltas = 18;
+
+      const intervalo = setInterval(() => {
+        limparDestaqueSorteio();
+
+        const temporario =
+          participantesAtuais[
+            Math.floor(Math.random() * participantesAtuais.length)
+          ];
+
+        destacarCardSorteio(temporario.id);
+
+        voltas++;
+
+        if (voltas >= totalVoltas) {
+          clearInterval(intervalo);
+
+          limparDestaqueSorteio();
+
+          const escolhido =
+            listaSorteio[
+              Math.floor(Math.random() * listaSorteio.length)
+            ];
+
+          selecionadoAtual = escolhido.id;
+
+          socket.emit("selecionar", escolhido.id);
+
+          statusAdmin.textContent =
+            "Sorteado para o telão: " + escolhido.nome;
+
+          destacarCardSorteio(escolhido.id);
+          atualizarCardSelecionado();
+
+          setTimeout(() => {
+            limparDestaqueSorteio();
+            atualizarCardSelecionado();
+
+            sorteioRodando = false;
+            btnSortear.disabled = false;
+            btnSortear.textContent = "🎲 Sortear câmera";
+          }, 900);
+        }
+      }, 120);
+    }
+
+    function destacarCardSorteio(id) {
+      const card = document.querySelector(
+        '.card-camera[data-id="' + id + '"]'
+      );
+
+      if (card) {
+        card.classList.add("sorteando");
+      }
+    }
+
+    function limparDestaqueSorteio() {
+      document.querySelectorAll(".card-camera").forEach((card) => {
+        card.classList.remove("sorteando");
+      });
+    }
 
     async function renderizarFila(participantes) {
       filaEl.innerHTML = "";
