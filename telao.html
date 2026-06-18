@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Telão do Evento</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
 
   <style>
     @font-face {
-  font-family: "FonteJunina";
-  src: url("fonts/jun.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-}
+      font-family: "FonteJunina";
+      src: url("fonts/jun.woff2") format("woff2");
+      font-weight: normal;
+      font-style: normal;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -39,7 +41,6 @@
       padding: 20px;
     }
 
-    /* FUNDO */
     .fundo-luzes {
       position: absolute;
       inset: 0;
@@ -53,7 +54,7 @@
         radial-gradient(circle at 55% 12%, rgba(255, 230, 140, 0.15) 0 8px, transparent 9px);
     }
 
-    /* BANDEIRINHAS FIXAS NO TOPO */
+    /* BANDEIRINHAS FIXAS NO FUNDO, NA PARTE DE CIMA */
     .topo-decorado {
       position: absolute;
       top: 0;
@@ -149,7 +150,7 @@
     .lampadas-topo span:nth-child(7) { left: 76%; top: 8px; }
     .lampadas-topo span:nth-child(8) { left: 88%; top: 22px; }
 
-    /* BOTÃO DOS AJUSTES */
+    /* BOTÃO DE AJUSTES MINIMIZADO */
     .botao-ajustes {
       position: absolute;
       top: 18px;
@@ -253,7 +254,7 @@
 
     .painel-festa {
       position: relative;
-      padding: 90px 30px 30px 30px;
+      padding: 104px 30px 30px 30px;
       border-radius: 30px;
       background: linear-gradient(180deg, #6e431e 0%, #5a3418 45%, #452611 100%);
       box-shadow:
@@ -272,15 +273,15 @@
       pointer-events: none;
     }
 
-    /* QUADRO MENOR DE CIMA */
+    /* QUADRO DE CIMA */
     .placa-titulo {
-  position: absolute;
-  top: -38px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(90%, 720px);
-  z-index: 20;
-}
+      position: absolute;
+      top: -44px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(94vw, 860px);
+      z-index: 20;
+    }
 
     .placa-arraia {
       background: linear-gradient(180deg, #7c4c24 0%, #5a3418 100%);
@@ -289,9 +290,10 @@
       box-shadow:
         0 12px 25px rgba(0, 0, 0, 0.42),
         inset 0 0 0 3px rgba(255,255,255,0.08);
-      padding: 16px 18px;
+      padding: 18px 28px;
       position: relative;
       text-align: center;
+      overflow: visible;
     }
 
     .placa-arraia::before,
@@ -314,44 +316,40 @@
       right: 18px;
     }
 
-    titulo-arraia {
+    .titulo-arraia {
       margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(26px, 3.4vw, 48px);
+      font-family: "FonteJunina", Georgia, "Times New Roman", serif;
+      font-size: clamp(48px, 6.2vw, 88px);
       white-space: nowrap;
-      line-height: 1;
-      font-weight: 900;
-      color: transparent;
-      background: linear-gradient(
-        90deg,
-        #e94735 0%,
-        #f2b52f 25%,
-        #5ca73b 50%,
-        #2d63b5 75%,
-        #d74a33 100%
-      );
-      -webkit-background-clip: text;
-      background-clip: text;
+      line-height: 1.05;
+      font-weight: normal;
+      letter-spacing: 8px;
+      transform: scaleX(1.16);
+      transform-origin: center;
+      color: #fff8e6;
       text-shadow:
-        0 3px 0 rgba(45, 22, 8, 0.70),
-        1px 1px 0 rgba(255, 243, 208, 0.10);
-      letter-spacing: 1px;
+        0 4px 0 rgba(45, 22, 8, 0.75),
+        0 0 8px rgba(255, 255, 255, 0.15);
     }
 
     .subtitulo-escola {
-      margin-top: 8px;
+      margin-top: 14px;
       display: inline-block;
       background: #113769;
       border: 3px dashed #d9a642;
       border-radius: 16px;
       color: #fff3d1;
-      font-weight: bold;
-      font-size: clamp(14px, 1.5vw, 22px);
-      padding: 10px 18px;
-      line-height: 1.2;
+      font-family: "FonteJunina", Arial, sans-serif;
+      font-weight: normal;
+      font-size: clamp(22px, 2.7vw, 38px);
+      padding: 14px 28px;
+      line-height: 1.15;
+      letter-spacing: 5px;
+      white-space: nowrap;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
     }
 
-    /* DECORAÇÕES */
+    /* DECORAÇÕES LATERAIS */
     .chapeu-palha {
       position: absolute;
       top: 34px;
@@ -631,52 +629,29 @@
       }
 
       .painel-festa {
-        padding: 78px 16px 18px 16px;
+        padding: 92px 16px 18px 16px;
       }
 
       .placa-titulo {
-        top: -28px;
-        width: 86%;
+        top: -36px;
+        width: 94vw;
       }
 
-     .titulo-arraia {
-  margin: 0;
-  font-family: "FonteJunina", Georgia, "Times New Roman", serif !important;
-  font-size: clamp(40px, 5vw, 20px);
-  white-space: nowrap;
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: 3px;
-  color: transparent;
-  background: linear-gradient(
-    90deg,
-    #e94735 0%,
-    #f2b52f 25%,
-    #5ca73b 50%,
-    #2d63b5 75%,
-    #d74a33 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  text-shadow:
-    0 3px 0 rgba(45, 22, 8, 0.70),
-    1px 1px 0 rgba(255, 243, 208, 0.10);
-}
+      .placa-arraia {
+        padding: 14px 16px;
+      }
+
+      .titulo-arraia {
+        font-size: clamp(34px, 8vw, 50px);
+        letter-spacing: 5px;
+        transform: scaleX(1.05);
+      }
 
       .subtitulo-escola {
-  margin-top: 10px;
-  display: inline-block;
-  background: #113769;
-  border: 3px dashed #d9a642;
-  border-radius: 16px;
-  color: #fff3d1;
-  font-family: "FonteJunina", Arial, sans-serif !important;
-  font-weight: bold;
-  font-size: clamp(16px, 1.8vw, 26px);
-  padding: 12px 22px;
-  line-height: 1.2;
-  letter-spacing: 2px;
-}
+        font-size: clamp(16px, 4vw, 24px);
+        letter-spacing: 3px;
+        padding: 10px 14px;
+      }
 
       .chapeu-palha,
       .balao-junino,
@@ -712,13 +687,6 @@
         bottom: 16px;
       }
     }
-    .titulo-arraia {
-  font-family: "FonteJunina", Georgia, "Times New Roman", serif !important;
-}
-
-.subtitulo-escola {
-  font-family: "FonteJunina", Arial, sans-serif !important;
-}
   </style>
 </head>
 
@@ -769,7 +737,7 @@
       <div class="painel-festa">
         <div class="placa-titulo">
           <div class="placa-arraia">
-            <h1 class="titulo-arraia">ARRAIÁ JULINO</h1>
+            <h1 class="titulo-arraia">ARRAIÁ JUNINO</h1>
             <div class="subtitulo-escola">COLÉGIO LUCIA ALVES</div>
           </div>
         </div>
