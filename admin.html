@@ -6,29 +6,177 @@
 
   <title>Painel Admin</title>
 
-  <link rel="stylesheet" href="style.css" />
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
+    }
+
+    .container {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .topo {
+      max-width: 1200px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+    }
+
+    .status {
+      color: #ffdf7e;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #00c2ff;
+      color: #07111f;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn-secundario {
+      background: #ffcc00;
+    }
+
+    .aviso {
+      max-width: 1200px;
+      margin: 0 auto 20px auto;
+      color: #d5dcec;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px 16px;
+      border-radius: 14px;
+      line-height: 1.4;
+    }
+
+    .grid-cameras {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .card-camera {
+      background: #17233a;
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.30);
+      border: 2px solid transparent;
+    }
+
+    .card-camera.selecionado {
+      border-color: #00c2ff;
+      box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.25);
+    }
+
+    .preview-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .nome {
+      margin-top: 12px;
+      font-size: 19px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .acoes {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .vazio {
+      max-width: 1200px;
+      margin: 40px auto;
+      background: #17233a;
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      color: #d5dcec;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .grid-cameras {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <main class="container">
-    <section class="card">
-      <h1>Painel Admin</h1>
-
-      <p id="statusAdmin" class="status">
-        Conectando...
-      </p>
-
-      <h2>Participantes na fila</h2>
-
-      <div id="fila" class="fila">
-        Nenhum participante na fila.
+    <div class="topo">
+      <div>
+        <h1>Painel Admin</h1>
+        <div id="statusAdmin" class="status">
+          Conectando...
+        </div>
       </div>
 
       <button id="btnParar" class="btn btn-secundario">
         Limpar telão
       </button>
-    </section>
+    </div>
+
+    <div class="aviso">
+      As miniaturas aparecem quando o participante permite a câmera no celular.
+      Clique em <strong>Colocar no telão</strong> para escolher quem será exibido.
+    </div>
+
+    <div id="fila" class="grid-cameras"></div>
+
+    <div id="vazio" class="vazio">
+      Nenhum participante na fila.
+    </div>
   </main>
 
   <script>
@@ -40,9 +188,20 @@
 
     const statusAdmin = document.getElementById("statusAdmin");
     const filaEl = document.getElementById("fila");
+    const vazioEl = document.getElementById("vazio");
     const btnParar = document.getElementById("btnParar");
 
     let selecionadoAtual = null;
+
+    const conexoes = {};
+    const remoteStreams = {};
+    const candidatosPendentes = {};
+
+    const iceServers = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" }
+    ];
 
     socket.on("connect", () => {
       socket.emit("registrarAdmin");
@@ -53,8 +212,8 @@
       statusAdmin.textContent = "Admin desconectado.";
     });
 
-    socket.on("fila", (participantes) => {
-      renderizarFila(participantes);
+    socket.on("fila", async (participantes) => {
+      await renderizarFila(participantes);
     });
 
     socket.on("participanteSelecionado", (participante) => {
@@ -62,10 +221,37 @@
 
       statusAdmin.textContent =
         "Selecionado para o telão: " + participante.nome;
+
+      atualizarCardSelecionado();
     });
 
     socket.on("erroSelecao", (mensagem) => {
       alert(mensagem);
+    });
+
+    socket.on("answer", async (data) => {
+      const participanteId = data.sender;
+      const pc = conexoes[participanteId];
+
+      if (!pc) return;
+
+      try {
+        await pc.setRemoteDescription(
+          new RTCSessionDescription(data.answer)
+        );
+
+        await processarCandidatosPendentes(participanteId);
+      } catch (erro) {
+        console.error("Erro ao receber answer admin:", erro);
+      }
+    });
+
+    socket.on("ice-candidate", async (data) => {
+      await adicionarCandidato(data.sender, data.candidate);
+    });
+
+    socket.on("usuarioDesconectado", (id) => {
+      removerPreview(id);
     });
 
     btnParar.addEventListener("click", () => {
@@ -73,37 +259,243 @@
 
       selecionadoAtual = null;
       statusAdmin.textContent = "Telão limpo.";
+
+      atualizarCardSelecionado();
     });
 
-    function renderizarFila(participantes) {
+    async function renderizarFila(participantes) {
       filaEl.innerHTML = "";
 
       if (!participantes || participantes.length === 0) {
-        filaEl.textContent = "Nenhum participante na fila.";
+        vazioEl.style.display = "block";
+        limparPreviewsQueNaoEstaoNaFila([]);
         return;
       }
 
-      participantes.forEach((participante) => {
-        const item = document.createElement("div");
-        item.className = "item-fila";
+      vazioEl.style.display = "none";
 
-        const nome = document.createElement("strong");
+      const idsAtuais = participantes.map((p) => p.id);
+
+      limparPreviewsQueNaoEstaoNaFila(idsAtuais);
+
+      participantes.forEach((participante) => {
+        const card = document.createElement("div");
+        card.className = "card-camera";
+        card.dataset.id = participante.id;
+
+        const previewWrap = document.createElement("div");
+        previewWrap.className = "preview-wrap";
+
+        const video = document.createElement("video");
+        video.className = "preview-video";
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.id = "preview-" + participante.id;
+
+        previewWrap.appendChild(video);
+
+        const nome = document.createElement("div");
+        nome.className = "nome";
         nome.textContent = participante.nome;
 
-        const botao = document.createElement("button");
-        botao.className = "btn pequeno";
-        botao.textContent = "Colocar no telão";
+        const acoes = document.createElement("div");
+        acoes.className = "acoes";
 
-        botao.addEventListener("click", () => {
+        const botaoSelecionar = document.createElement("button");
+        botaoSelecionar.className = "btn";
+        botaoSelecionar.textContent = "Colocar no telão";
+
+        botaoSelecionar.addEventListener("click", () => {
           selecionadoAtual = participante.id;
 
           socket.emit("selecionar", participante.id);
+
+          atualizarCardSelecionado();
         });
 
-        item.appendChild(nome);
-        item.appendChild(botao);
+        acoes.appendChild(botaoSelecionar);
 
-        filaEl.appendChild(item);
+        card.appendChild(previewWrap);
+        card.appendChild(nome);
+        card.appendChild(acoes);
+
+        filaEl.appendChild(card);
+
+        iniciarPreview(participante.id);
+      });
+
+      atualizarCardSelecionado();
+    }
+
+    async function iniciarPreview(participanteId) {
+      if (conexoes[participanteId]) {
+        conectarStreamAoVideo(participanteId);
+        return;
+      }
+
+      try {
+        candidatosPendentes[participanteId] = [];
+
+        const pc = new RTCPeerConnection({
+          iceServers: iceServers
+        });
+
+        conexoes[participanteId] = pc;
+
+        const stream = new MediaStream();
+        remoteStreams[participanteId] = stream;
+
+        pc.addTransceiver("video", {
+          direction: "recvonly"
+        });
+
+        pc.ontrack = async (event) => {
+          stream.addTrack(event.track);
+
+          conectarStreamAoVideo(participanteId);
+
+          const video = document.getElementById(
+            "preview-" + participanteId
+          );
+
+          if (video) {
+            try {
+              await video.play();
+            } catch (erro) {
+              console.error("Erro ao tocar preview:", erro);
+            }
+          }
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit("ice-candidate", {
+              target: participanteId,
+              candidate: event.candidate
+            });
+          }
+        };
+
+        pc.onconnectionstatechange = () => {
+          console.log(
+            "Preview admin",
+            participanteId,
+            pc.connectionState
+          );
+
+          if (
+            pc.connectionState === "failed" ||
+            pc.connectionState === "closed"
+          ) {
+            removerPreview(participanteId);
+          }
+        };
+
+        const offer = await pc.createOffer();
+
+        await pc.setLocalDescription(offer);
+
+        socket.emit("offer", {
+          target: participanteId,
+          offer: offer
+        });
+
+        conectarStreamAoVideo(participanteId);
+      } catch (erro) {
+        console.error("Erro ao iniciar preview:", erro);
+      }
+    }
+
+    function conectarStreamAoVideo(participanteId) {
+      const video = document.getElementById("preview-" + participanteId);
+      const stream = remoteStreams[participanteId];
+
+      if (video && stream) {
+        video.srcObject = stream;
+      }
+    }
+
+    async function adicionarCandidato(participanteId, candidate) {
+      if (!candidate) return;
+
+      const pc = conexoes[participanteId];
+
+      if (
+        pc &&
+        pc.remoteDescription &&
+        pc.remoteDescription.type
+      ) {
+        try {
+          await pc.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+        } catch (erro) {
+          console.error("Erro ICE admin:", erro);
+        }
+      } else {
+        if (!candidatosPendentes[participanteId]) {
+          candidatosPendentes[participanteId] = [];
+        }
+
+        candidatosPendentes[participanteId].push(candidate);
+      }
+    }
+
+    async function processarCandidatosPendentes(participanteId) {
+      const pc = conexoes[participanteId];
+
+      if (!pc) return;
+
+      const lista = candidatosPendentes[participanteId] || [];
+
+      for (const candidate of lista) {
+        try {
+          await pc.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+        } catch (erro) {
+          console.error("Erro ICE pendente admin:", erro);
+        }
+      }
+
+      candidatosPendentes[participanteId] = [];
+    }
+
+    function removerPreview(participanteId) {
+      if (conexoes[participanteId]) {
+        conexoes[participanteId].close();
+        delete conexoes[participanteId];
+      }
+
+      if (remoteStreams[participanteId]) {
+        remoteStreams[participanteId].getTracks().forEach((track) => {
+          track.stop();
+        });
+
+        delete remoteStreams[participanteId];
+      }
+
+      if (candidatosPendentes[participanteId]) {
+        delete candidatosPendentes[participanteId];
+      }
+    }
+
+    function limparPreviewsQueNaoEstaoNaFila(idsAtuais) {
+      Object.keys(conexoes).forEach((id) => {
+        if (!idsAtuais.includes(id)) {
+          removerPreview(id);
+        }
+      });
+    }
+
+    function atualizarCardSelecionado() {
+      document.querySelectorAll(".card-camera").forEach((card) => {
+        if (card.dataset.id === selecionadoAtual) {
+          card.classList.add("selecionado");
+        } else {
+          card.classList.remove("selecionado");
+        }
       });
     }
   </script>
