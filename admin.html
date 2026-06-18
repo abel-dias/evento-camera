@@ -1,181 +1,883 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-const app = express();
-const server = http.createServer(app);
+  <title>Painel Admin</title>
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
 
-const participantes = new Map();
-let telaoId = null;
-
-function getFilaParticipantes() {
-  return Array.from(participantes.values());
-}
-
-function atualizarFila() {
-  io.emit("fila", getFilaParticipantes());
-}
-
-io.on("connection", (socket) => {
-  console.log("Conectado:", socket.id);
-
-  socket.on("registrarTelao", () => {
-    telaoId = socket.id;
-    console.log("Telão registrado:", telaoId);
-
-    socket.emit("telaoRegistrado");
-    atualizarFila();
-  });
-
-  socket.on("registrarAdmin", () => {
-    console.log("Admin registrado:", socket.id);
-    socket.emit("fila", getFilaParticipantes());
-  });
-
-  socket.on("entrar", (dados = {}) => {
-    const nome =
-      dados.nome && dados.nome.trim() !== ""
-        ? dados.nome.trim()
-        : "Participante";
-
-    const participante = {
-      id: socket.id,
-      nome: nome,
-      entrouEm: Date.now()
-    };
-
-    participantes.set(socket.id, participante);
-
-    console.log("Participante entrou:", participante);
-
-    socket.emit("entradaConfirmada", participante);
-    atualizarFila();
-  });
-
-  socket.on("selecionar", (idParticipante) => {
-    const participante = participantes.get(idParticipante);
-
-    if (!participante) {
-      socket.emit("erroSelecao", "Participante não encontrado.");
-      return;
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    if (!telaoId) {
-      socket.emit("erroSelecao", "O telão ainda não está conectado.");
-      return;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
     }
 
-    console.log("Participante selecionado:", participante.nome);
+    .admin-bloqueado {
+      display: none;
+    }
 
-    io.to(telaoId).emit("esconderQRCodeTelao");
+    .tela-senha {
+      position: fixed;
+      inset: 0;
+      background: #101827;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
 
-    io.to(telaoId).emit("iniciarVideo", {
-      participante: participante
+    .caixa-senha {
+      width: 100%;
+      max-width: 420px;
+      background: #17233a;
+      border-radius: 22px;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .caixa-senha h1 {
+      margin-top: 0;
+      font-size: 32px;
+    }
+
+    .caixa-senha p {
+      color: #d5dcec;
+      line-height: 1.4;
+    }
+
+    .caixa-senha input {
+      width: 100%;
+      padding: 15px;
+      margin: 16px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      outline: none;
+    }
+
+    .caixa-senha button {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 18px;
+      background: #00c2ff;
+      color: #07111f;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .caixa-senha button:hover {
+      filter: brightness(1.08);
+    }
+
+    .erro-senha {
+      color: #ff7676 !important;
+      font-weight: bold;
+      margin-top: 14px;
+      min-height: 20px;
+    }
+
+    .container {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .topo {
+      max-width: 1200px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+    }
+
+    .status {
+      color: #ffdf7e;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #00c2ff;
+      color: #07111f;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn-secundario {
+      background: #ffcc00;
+    }
+
+    .btn-sorteio {
+      background: #8cff66;
+      color: #10200b;
+    }
+
+    .btn-qr {
+      background: #ff9f43;
+      color: #111;
+    }
+
+    .btn-sair {
+      background: #ff7676;
+      color: #111;
+    }
+
+    .botoes-topo {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .aviso {
+      max-width: 1200px;
+      margin: 0 auto 20px auto;
+      color: #d5dcec;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px 16px;
+      border-radius: 14px;
+      line-height: 1.4;
+    }
+
+    .grid-cameras {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .card-camera {
+      background: #17233a;
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.30);
+      border: 2px solid transparent;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-camera.selecionado {
+      border-color: #00c2ff;
+      box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.25);
+    }
+
+    .card-camera.sorteando {
+      border-color: #8cff66;
+      box-shadow: 0 0 0 4px rgba(140, 255, 102, 0.35);
+      transform: scale(1.04);
+    }
+
+    .preview-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .nome {
+      margin-top: 12px;
+      font-size: 19px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .acoes {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .vazio {
+      max-width: 1200px;
+      margin: 40px auto;
+      background: #17233a;
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      color: #d5dcec;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .grid-cameras {
+        grid-template-columns: 1fr;
+      }
+
+      .botoes-topo {
+        width: 100%;
+      }
+
+      .botoes-topo button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="telaSenha" class="tela-senha">
+    <div class="caixa-senha">
+      <h1>Área restrita</h1>
+
+      <p>
+        Digite a senha para acessar o painel admin.
+      </p>
+
+      <input
+        id="inputSenha"
+        type="password"
+        placeholder="Digite a senha"
+        autocomplete="off"
+      />
+
+      <button onclick="verificarSenha()">
+        Entrar
+      </button>
+
+      <p id="erroSenha" class="erro-senha"></p>
+    </div>
+  </div>
+
+  <main id="adminConteudo" class="container admin-bloqueado">
+    <div class="topo">
+      <div>
+        <h1>Painel Admin</h1>
+
+        <div id="statusAdmin" class="status">
+          Conectando...
+        </div>
+      </div>
+
+      <div class="botoes-topo">
+        <button id="btnQRCode" class="btn btn-qr">
+          📱 QR Code
+        </button>
+
+        <button id="btnSortear" class="btn btn-sorteio">
+          🎲 Sortear câmera
+        </button>
+
+        <button id="btnParar" class="btn btn-secundario">
+          Limpar telão
+        </button>
+
+        <button onclick="sairAdmin()" class="btn btn-sair">
+          Sair
+        </button>
+      </div>
+    </div>
+
+    <div class="aviso">
+      As miniaturas aparecem quando o participante permite a câmera no celular.
+      Clique em <strong>Colocar no telão</strong>, use
+      <strong>Sortear câmera</strong> ou clique em <strong>QR Code</strong>
+      para exibir o QR Code no telão.
+    </div>
+
+    <div id="fila" class="grid-cameras"></div>
+
+    <div id="vazio" class="vazio">
+      Nenhum participante na fila.
+    </div>
+  </main>
+
+  <script>
+    const SERVER_URL = "https://evento-camera-server.onrender.com";
+    const SENHA_ADMIN = "x369369x";
+
+    const telaSenha = document.getElementById("telaSenha");
+    const inputSenha = document.getElementById("inputSenha");
+    const erroSenha = document.getElementById("erroSenha");
+    const adminConteudo = document.getElementById("adminConteudo");
+
+    const statusAdmin = document.getElementById("statusAdmin");
+    const filaEl = document.getElementById("fila");
+    const vazioEl = document.getElementById("vazio");
+    const btnParar = document.getElementById("btnParar");
+    const btnSortear = document.getElementById("btnSortear");
+    const btnQRCode = document.getElementById("btnQRCode");
+
+    let socket = null;
+    let selecionadoAtual = null;
+    let adminIniciado = false;
+    let participantesAtuais = [];
+    let sorteioRodando = false;
+    let qrCodeVisivel = false;
+
+    const conexoes = {};
+    const remoteStreams = {};
+    const candidatosPendentes = {};
+
+    const iceServers = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" }
+    ];
+
+    function verificarSenha() {
+      if (inputSenha.value === SENHA_ADMIN) {
+        sessionStorage.setItem("adminLiberado", "sim");
+
+        telaSenha.style.display = "none";
+        adminConteudo.classList.remove("admin-bloqueado");
+
+        iniciarAdmin();
+      } else {
+        erroSenha.textContent = "Senha incorreta.";
+        inputSenha.value = "";
+        inputSenha.focus();
+      }
+    }
+
+    function sairAdmin() {
+      sessionStorage.removeItem("adminLiberado");
+
+      fecharTodasPreviews();
+
+      if (socket) {
+        socket.disconnect();
+        socket = null;
+      }
+
+      adminIniciado = false;
+      participantesAtuais = [];
+      selecionadoAtual = null;
+      qrCodeVisivel = false;
+
+      adminConteudo.classList.add("admin-bloqueado");
+      telaSenha.style.display = "flex";
+
+      inputSenha.value = "";
+      erroSenha.textContent = "";
+      inputSenha.focus();
+    }
+
+    window.addEventListener("load", () => {
+      if (sessionStorage.getItem("adminLiberado") === "sim") {
+        telaSenha.style.display = "none";
+        adminConteudo.classList.remove("admin-bloqueado");
+        iniciarAdmin();
+      } else {
+        telaSenha.style.display = "flex";
+        adminConteudo.classList.add("admin-bloqueado");
+        inputSenha.focus();
+      }
+
+      inputSenha.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          verificarSenha();
+        }
+      });
     });
 
-    io.to(idParticipante).emit("voceFoiSelecionado", {
-      telaoId: telaoId,
-      participante: participante
+    function iniciarAdmin() {
+      if (adminIniciado) return;
+
+      adminIniciado = true;
+
+      socket = io(SERVER_URL, {
+        transports: ["websocket", "polling"]
+      });
+
+      socket.on("connect", () => {
+        socket.emit("registrarAdmin");
+        statusAdmin.textContent = "Admin conectado.";
+      });
+
+      socket.on("disconnect", () => {
+        statusAdmin.textContent = "Admin desconectado.";
+      });
+
+      socket.on("fila", async (participantes) => {
+        participantesAtuais = participantes || [];
+        await renderizarFila(participantesAtuais);
+      });
+
+      socket.on("participanteSelecionado", (participante) => {
+        selecionadoAtual = participante.id;
+        qrCodeVisivel = false;
+        atualizarBotaoQRCode();
+
+        statusAdmin.textContent =
+          "Selecionado para o telão: " + participante.nome;
+
+        atualizarCardSelecionado();
+      });
+
+      socket.on("erroSelecao", (mensagem) => {
+        alert(mensagem);
+      });
+
+      socket.on("answer", async (data) => {
+        const participanteId = data.sender;
+        const pc = conexoes[participanteId];
+
+        if (!pc) return;
+
+        try {
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(data.answer)
+          );
+
+          await processarCandidatosPendentes(participanteId);
+        } catch (erro) {
+          console.error("Erro ao receber answer admin:", erro);
+        }
+      });
+
+      socket.on("ice-candidate", async (data) => {
+        await adicionarCandidato(data.sender, data.candidate);
+      });
+
+      socket.on("usuarioDesconectado", (id) => {
+        removerPreview(id);
+        participantesAtuais = participantesAtuais.filter((p) => p.id !== id);
+      });
+    }
+
+    btnQRCode.addEventListener("click", () => {
+      alternarQRCodeTelao();
     });
 
-    io.emit("participanteSelecionado", participante);
-  });
+    function alternarQRCodeTelao() {
+      if (!socket) {
+        alert("Admin ainda não está conectado.");
+        return;
+      }
 
-  socket.on("mostrarQRCodeTelao", () => {
-    if (!telaoId) {
-      socket.emit("erroSelecao", "O telão ainda não está conectado.");
-      return;
+      qrCodeVisivel = !qrCodeVisivel;
+
+      if (qrCodeVisivel) {
+        socket.emit("mostrarQRCodeTelao");
+        selecionadoAtual = null;
+        statusAdmin.textContent = "QR Code exibido no telão.";
+      } else {
+        socket.emit("esconderQRCodeTelao");
+        statusAdmin.textContent = "QR Code ocultado.";
+      }
+
+      atualizarBotaoQRCode();
+      atualizarCardSelecionado();
     }
 
-    console.log("Mostrar QR Code no telão");
-    io.to(telaoId).emit("mostrarQRCodeTelao");
-  });
+    function esconderQRCodeSeEstiverAberto() {
+      if (qrCodeVisivel && socket) {
+        socket.emit("esconderQRCodeTelao");
+      }
 
-  socket.on("esconderQRCodeTelao", () => {
-    if (telaoId) {
-      console.log("Esconder QR Code no telão");
-      io.to(telaoId).emit("esconderQRCodeTelao");
+      qrCodeVisivel = false;
+      atualizarBotaoQRCode();
     }
-  });
 
-  socket.on("offer", (data) => {
-    if (!data || !data.target || !data.offer) return;
+    function atualizarBotaoQRCode() {
+      if (qrCodeVisivel) {
+        btnQRCode.textContent = "❌ Ocultar QR";
+      } else {
+        btnQRCode.textContent = "📱 QR Code";
+      }
+    }
 
-    io.to(data.target).emit("offer", {
-      sender: socket.id,
-      offer: data.offer
+    btnParar.addEventListener("click", () => {
+      if (!socket) return;
+
+      socket.emit("pararTransmissao", selecionadoAtual);
+      socket.emit("esconderQRCodeTelao");
+
+      selecionadoAtual = null;
+      qrCodeVisivel = false;
+
+      atualizarBotaoQRCode();
+
+      statusAdmin.textContent = "Telão limpo.";
+
+      atualizarCardSelecionado();
     });
-  });
 
-  socket.on("answer", (data) => {
-    if (!data || !data.target || !data.answer) return;
-
-    io.to(data.target).emit("answer", {
-      sender: socket.id,
-      answer: data.answer
+    btnSortear.addEventListener("click", () => {
+      sortearCamera();
     });
-  });
 
-  socket.on("ice-candidate", (data) => {
-    if (!data || !data.target || !data.candidate) return;
+    function sortearCamera() {
+      if (sorteioRodando) return;
 
-    io.to(data.target).emit("ice-candidate", {
-      sender: socket.id,
-      candidate: data.candidate
-    });
-  });
+      if (!socket) {
+        alert("Admin ainda não está conectado.");
+        return;
+      }
 
-  socket.on("pararTransmissao", (idParticipante) => {
-    console.log("Parar transmissão:", idParticipante);
+      if (!participantesAtuais || participantesAtuais.length === 0) {
+        alert("Não há participantes para sortear.");
+        return;
+      }
 
-    if (idParticipante) {
-      io.to(idParticipante).emit("pararTransmissao");
+      esconderQRCodeSeEstiverAberto();
+
+      sorteioRodando = true;
+      btnSortear.disabled = true;
+      btnSortear.textContent = "🎲 Sorteando...";
+
+      statusAdmin.textContent = "Sorteando uma câmera...";
+
+      const candidatos =
+        participantesAtuais.length > 1
+          ? participantesAtuais.filter((p) => p.id !== selecionadoAtual)
+          : participantesAtuais;
+
+      const listaSorteio = candidatos.length > 0 ? candidatos : participantesAtuais;
+
+      let voltas = 0;
+      const totalVoltas = 18;
+
+      const intervalo = setInterval(() => {
+        limparDestaqueSorteio();
+
+        const temporario =
+          participantesAtuais[
+            Math.floor(Math.random() * participantesAtuais.length)
+          ];
+
+        destacarCardSorteio(temporario.id);
+
+        voltas++;
+
+        if (voltas >= totalVoltas) {
+          clearInterval(intervalo);
+
+          limparDestaqueSorteio();
+
+          const escolhido =
+            listaSorteio[
+              Math.floor(Math.random() * listaSorteio.length)
+            ];
+
+          selecionadoAtual = escolhido.id;
+
+          socket.emit("selecionar", escolhido.id);
+
+          statusAdmin.textContent =
+            "Sorteado para o telão: " + escolhido.nome;
+
+          destacarCardSorteio(escolhido.id);
+          atualizarCardSelecionado();
+
+          setTimeout(() => {
+            limparDestaqueSorteio();
+            atualizarCardSelecionado();
+
+            sorteioRodando = false;
+            btnSortear.disabled = false;
+            btnSortear.textContent = "🎲 Sortear câmera";
+          }, 900);
+        }
+      }, 120);
     }
 
-    if (telaoId) {
-      io.to(telaoId).emit("limparTelao");
-      io.to(telaoId).emit("esconderQRCodeTelao");
-    }
-  });
+    function destacarCardSorteio(id) {
+      const card = document.querySelector(
+        '.card-camera[data-id="' + id + '"]'
+      );
 
-  socket.on("disconnect", () => {
-    console.log("Desconectado:", socket.id);
-
-    if (socket.id === telaoId) {
-      telaoId = null;
-      console.log("Telão desconectado");
+      if (card) {
+        card.classList.add("sorteando");
+      }
     }
 
-    if (participantes.has(socket.id)) {
-      participantes.delete(socket.id);
-      atualizarFila();
+    function limparDestaqueSorteio() {
+      document.querySelectorAll(".card-camera").forEach((card) => {
+        card.classList.remove("sorteando");
+      });
     }
 
-    io.emit("usuarioDesconectado", socket.id);
-  });
-});
+    async function renderizarFila(participantes) {
+      filaEl.innerHTML = "";
 
-app.get("/", (req, res) => {
-  res.send("Servidor Online - Evento Câmera");
-});
+      if (!participantes || participantes.length === 0) {
+        vazioEl.style.display = "block";
+        limparPreviewsQueNaoEstaoNaFila([]);
+        return;
+      }
 
-app.get("/health", (req, res) => {
-  res.json({
-    status: "online",
-    participantes: participantes.size,
-    telaoConectado: !!telaoId
-  });
-});
+      vazioEl.style.display = "none";
 
-const PORT = process.env.PORT || 3000;
+      const idsAtuais = participantes.map((p) => p.id);
 
-server.listen(PORT, () => {
-  console.log("Servidor rodando na porta", PORT);
-});
+      limparPreviewsQueNaoEstaoNaFila(idsAtuais);
+
+      participantes.forEach((participante) => {
+        const card = document.createElement("div");
+        card.className = "card-camera";
+        card.dataset.id = participante.id;
+
+        const previewWrap = document.createElement("div");
+        previewWrap.className = "preview-wrap";
+
+        const video = document.createElement("video");
+        video.className = "preview-video";
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.id = "preview-" + participante.id;
+
+        previewWrap.appendChild(video);
+
+        const nome = document.createElement("div");
+        nome.className = "nome";
+        nome.textContent = participante.nome;
+
+        const acoes = document.createElement("div");
+        acoes.className = "acoes";
+
+        const botaoSelecionar = document.createElement("button");
+        botaoSelecionar.className = "btn";
+        botaoSelecionar.textContent = "Colocar no telão";
+
+        botaoSelecionar.addEventListener("click", () => {
+          selecionadoAtual = participante.id;
+
+          esconderQRCodeSeEstiverAberto();
+
+          if (socket) {
+            socket.emit("selecionar", participante.id);
+          }
+
+          atualizarCardSelecionado();
+        });
+
+        acoes.appendChild(botaoSelecionar);
+
+        card.appendChild(previewWrap);
+        card.appendChild(nome);
+        card.appendChild(acoes);
+
+        filaEl.appendChild(card);
+
+        iniciarPreview(participante.id);
+      });
+
+      atualizarCardSelecionado();
+    }
+
+    async function iniciarPreview(participanteId) {
+      if (!socket) return;
+
+      if (conexoes[participanteId]) {
+        conectarStreamAoVideo(participanteId);
+        return;
+      }
+
+      try {
+        candidatosPendentes[participanteId] = [];
+
+        const pc = new RTCPeerConnection({
+          iceServers: iceServers
+        });
+
+        conexoes[participanteId] = pc;
+
+        const stream = new MediaStream();
+        remoteStreams[participanteId] = stream;
+
+        pc.addTransceiver("video", {
+          direction: "recvonly"
+        });
+
+        pc.ontrack = async (event) => {
+          stream.addTrack(event.track);
+
+          conectarStreamAoVideo(participanteId);
+
+          const video = document.getElementById(
+            "preview-" + participanteId
+          );
+
+          if (video) {
+            try {
+              await video.play();
+            } catch (erro) {
+              console.error("Erro ao tocar preview:", erro);
+            }
+          }
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate && socket) {
+            socket.emit("ice-candidate", {
+              target: participanteId,
+              candidate: event.candidate
+            });
+          }
+        };
+
+        pc.onconnectionstatechange = () => {
+          console.log(
+            "Preview admin",
+            participanteId,
+            pc.connectionState
+          );
+
+          if (
+            pc.connectionState === "failed" ||
+            pc.connectionState === "closed"
+          ) {
+            removerPreview(participanteId);
+          }
+        };
+
+        const offer = await pc.createOffer();
+
+        await pc.setLocalDescription(offer);
+
+        socket.emit("offer", {
+          target: participanteId,
+          offer: offer
+        });
+
+        conectarStreamAoVideo(participanteId);
+      } catch (erro) {
+        console.error("Erro ao iniciar preview:", erro);
+      }
+    }
+
+    function conectarStreamAoVideo(participanteId) {
+      const video = document.getElementById("preview-" + participanteId);
+      const stream = remoteStreams[participanteId];
+
+      if (video && stream) {
+        video.srcObject = stream;
+      }
+    }
+
+    async function adicionarCandidato(participanteId, candidate) {
+      if (!candidate) return;
+
+      const pc = conexoes[participanteId];
+
+      if (
+        pc &&
+        pc.remoteDescription &&
+        pc.remoteDescription.type
+      ) {
+        try {
+          await pc.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+        } catch (erro) {
+          console.error("Erro ICE admin:", erro);
+        }
+      } else {
+        if (!candidatosPendentes[participanteId]) {
+          candidatosPendentes[participanteId] = [];
+        }
+
+        candidatosPendentes[participanteId].push(candidate);
+      }
+    }
+
+    async function processarCandidatosPendentes(participanteId) {
+      const pc = conexoes[participanteId];
+
+      if (!pc) return;
+
+      const lista = candidatosPendentes[participanteId] || [];
+
+      for (const candidate of lista) {
+        try {
+          await pc.addIceCandidate(
+            new RTCIceCandidate(candidate)
+          );
+        } catch (erro) {
+          console.error("Erro ICE pendente admin:", erro);
+        }
+      }
+
+      candidatosPendentes[participanteId] = [];
+    }
+
+    function removerPreview(participanteId) {
+      if (conexoes[participanteId]) {
+        conexoes[participanteId].close();
+        delete conexoes[participanteId];
+      }
+
+      if (remoteStreams[participanteId]) {
+        remoteStreams[participanteId].getTracks().forEach((track) => {
+          track.stop();
+        });
+
+        delete remoteStreams[participanteId];
+      }
+
+      if (candidatosPendentes[participanteId]) {
+        delete candidatosPendentes[participanteId];
+      }
+    }
+
+    function limparPreviewsQueNaoEstaoNaFila(idsAtuais) {
+      Object.keys(conexoes).forEach((id) => {
+        if (!idsAtuais.includes(id)) {
+          removerPreview(id);
+        }
+      });
+    }
+
+    function fecharTodasPreviews() {
+      Object.keys(conexoes).forEach((id) => {
+        removerPreview(id);
+      });
+    }
+
+    function atualizarCardSelecionado() {
+      document.querySelectorAll(".card-camera").forEach((card) => {
+        if (card.dataset.id === selecionadoAtual) {
+          card.classList.add("selecionado");
+        } else {
+          card.classList.remove("selecionado");
+        }
+      });
+    }
+  </script>
+</body>
+</html>
