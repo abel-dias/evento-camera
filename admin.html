@@ -20,6 +20,74 @@
       color: white;
     }
 
+    .admin-bloqueado {
+      display: none;
+    }
+
+    .tela-senha {
+      position: fixed;
+      inset: 0;
+      background: #101827;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .caixa-senha {
+      width: 100%;
+      max-width: 420px;
+      background: #17233a;
+      border-radius: 22px;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .caixa-senha h1 {
+      margin-top: 0;
+      font-size: 32px;
+    }
+
+    .caixa-senha p {
+      color: #d5dcec;
+      line-height: 1.4;
+    }
+
+    .caixa-senha input {
+      width: 100%;
+      padding: 15px;
+      margin: 16px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      outline: none;
+    }
+
+    .caixa-senha button {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 18px;
+      background: #00c2ff;
+      color: #07111f;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .caixa-senha button:hover {
+      filter: brightness(1.08);
+    }
+
+    .erro-senha {
+      color: #ff7676 !important;
+      font-weight: bold;
+      margin-top: 14px;
+      min-height: 20px;
+    }
+
     .container {
       min-height: 100vh;
       padding: 24px;
@@ -63,6 +131,17 @@
 
     .btn-secundario {
       background: #ffcc00;
+    }
+
+    .btn-sair {
+      background: #ff7676;
+      color: #111;
+    }
+
+    .botoes-topo {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .aviso {
@@ -149,22 +228,61 @@
       .grid-cameras {
         grid-template-columns: 1fr;
       }
+
+      .botoes-topo {
+        width: 100%;
+      }
+
+      .botoes-topo button {
+        flex: 1;
+      }
     }
   </style>
 </head>
+
 <body>
-  <main class="container">
+  <div id="telaSenha" class="tela-senha">
+    <div class="caixa-senha">
+      <h1>Área restrita</h1>
+
+      <p>
+        Digite a senha para acessar o painel admin.
+      </p>
+
+      <input
+        id="inputSenha"
+        type="password"
+        placeholder="Digite a senha"
+        autocomplete="off"
+      />
+
+      <button onclick="verificarSenha()">
+        Entrar
+      </button>
+
+      <p id="erroSenha" class="erro-senha"></p>
+    </div>
+  </div>
+
+  <main id="adminConteudo" class="container admin-bloqueado">
     <div class="topo">
       <div>
         <h1>Painel Admin</h1>
+
         <div id="statusAdmin" class="status">
           Conectando...
         </div>
       </div>
 
-      <button id="btnParar" class="btn btn-secundario">
-        Limpar telão
-      </button>
+      <div class="botoes-topo">
+        <button id="btnParar" class="btn btn-secundario">
+          Limpar telão
+        </button>
+
+        <button onclick="sairAdmin()" class="btn btn-sair">
+          Sair
+        </button>
+      </div>
     </div>
 
     <div class="aviso">
@@ -181,17 +299,21 @@
 
   <script>
     const SERVER_URL = "https://evento-camera-server.onrender.com";
+    const SENHA_ADMIN = "x369369x";
 
-    const socket = io(SERVER_URL, {
-      transports: ["websocket", "polling"]
-    });
+    const telaSenha = document.getElementById("telaSenha");
+    const inputSenha = document.getElementById("inputSenha");
+    const erroSenha = document.getElementById("erroSenha");
+    const adminConteudo = document.getElementById("adminConteudo");
 
     const statusAdmin = document.getElementById("statusAdmin");
     const filaEl = document.getElementById("fila");
     const vazioEl = document.getElementById("vazio");
     const btnParar = document.getElementById("btnParar");
 
+    let socket = null;
     let selecionadoAtual = null;
+    let adminIniciado = false;
 
     const conexoes = {};
     const remoteStreams = {};
@@ -203,58 +325,123 @@
       { urls: "stun:stun2.l.google.com:19302" }
     ];
 
-    socket.on("connect", () => {
-      socket.emit("registrarAdmin");
-      statusAdmin.textContent = "Admin conectado.";
-    });
+    function verificarSenha() {
+      if (inputSenha.value === SENHA_ADMIN) {
+        sessionStorage.setItem("adminLiberado", "sim");
 
-    socket.on("disconnect", () => {
-      statusAdmin.textContent = "Admin desconectado.";
-    });
+        telaSenha.style.display = "none";
+        adminConteudo.classList.remove("admin-bloqueado");
 
-    socket.on("fila", async (participantes) => {
-      await renderizarFila(participantes);
-    });
-
-    socket.on("participanteSelecionado", (participante) => {
-      selecionadoAtual = participante.id;
-
-      statusAdmin.textContent =
-        "Selecionado para o telão: " + participante.nome;
-
-      atualizarCardSelecionado();
-    });
-
-    socket.on("erroSelecao", (mensagem) => {
-      alert(mensagem);
-    });
-
-    socket.on("answer", async (data) => {
-      const participanteId = data.sender;
-      const pc = conexoes[participanteId];
-
-      if (!pc) return;
-
-      try {
-        await pc.setRemoteDescription(
-          new RTCSessionDescription(data.answer)
-        );
-
-        await processarCandidatosPendentes(participanteId);
-      } catch (erro) {
-        console.error("Erro ao receber answer admin:", erro);
+        iniciarAdmin();
+      } else {
+        erroSenha.textContent = "Senha incorreta.";
+        inputSenha.value = "";
+        inputSenha.focus();
       }
+    }
+
+    function sairAdmin() {
+      sessionStorage.removeItem("adminLiberado");
+
+      fecharTodasPreviews();
+
+      if (socket) {
+        socket.disconnect();
+        socket = null;
+      }
+
+      adminIniciado = false;
+
+      adminConteudo.classList.add("admin-bloqueado");
+      telaSenha.style.display = "flex";
+
+      inputSenha.value = "";
+      erroSenha.textContent = "";
+      inputSenha.focus();
+    }
+
+    window.addEventListener("load", () => {
+      if (sessionStorage.getItem("adminLiberado") === "sim") {
+        telaSenha.style.display = "none";
+        adminConteudo.classList.remove("admin-bloqueado");
+        iniciarAdmin();
+      } else {
+        telaSenha.style.display = "flex";
+        adminConteudo.classList.add("admin-bloqueado");
+        inputSenha.focus();
+      }
+
+      inputSenha.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          verificarSenha();
+        }
+      });
     });
 
-    socket.on("ice-candidate", async (data) => {
-      await adicionarCandidato(data.sender, data.candidate);
-    });
+    function iniciarAdmin() {
+      if (adminIniciado) return;
 
-    socket.on("usuarioDesconectado", (id) => {
-      removerPreview(id);
-    });
+      adminIniciado = true;
+
+      socket = io(SERVER_URL, {
+        transports: ["websocket", "polling"]
+      });
+
+      socket.on("connect", () => {
+        socket.emit("registrarAdmin");
+        statusAdmin.textContent = "Admin conectado.";
+      });
+
+      socket.on("disconnect", () => {
+        statusAdmin.textContent = "Admin desconectado.";
+      });
+
+      socket.on("fila", async (participantes) => {
+        await renderizarFila(participantes);
+      });
+
+      socket.on("participanteSelecionado", (participante) => {
+        selecionadoAtual = participante.id;
+
+        statusAdmin.textContent =
+          "Selecionado para o telão: " + participante.nome;
+
+        atualizarCardSelecionado();
+      });
+
+      socket.on("erroSelecao", (mensagem) => {
+        alert(mensagem);
+      });
+
+      socket.on("answer", async (data) => {
+        const participanteId = data.sender;
+        const pc = conexoes[participanteId];
+
+        if (!pc) return;
+
+        try {
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(data.answer)
+          );
+
+          await processarCandidatosPendentes(participanteId);
+        } catch (erro) {
+          console.error("Erro ao receber answer admin:", erro);
+        }
+      });
+
+      socket.on("ice-candidate", async (data) => {
+        await adicionarCandidato(data.sender, data.candidate);
+      });
+
+      socket.on("usuarioDesconectado", (id) => {
+        removerPreview(id);
+      });
+    }
 
     btnParar.addEventListener("click", () => {
+      if (!socket) return;
+
       socket.emit("pararTransmissao", selecionadoAtual);
 
       selecionadoAtual = null;
@@ -309,7 +496,9 @@
         botaoSelecionar.addEventListener("click", () => {
           selecionadoAtual = participante.id;
 
-          socket.emit("selecionar", participante.id);
+          if (socket) {
+            socket.emit("selecionar", participante.id);
+          }
 
           atualizarCardSelecionado();
         });
@@ -329,6 +518,8 @@
     }
 
     async function iniciarPreview(participanteId) {
+      if (!socket) return;
+
       if (conexoes[participanteId]) {
         conectarStreamAoVideo(participanteId);
         return;
@@ -369,7 +560,7 @@
         };
 
         pc.onicecandidate = (event) => {
-          if (event.candidate) {
+          if (event.candidate && socket) {
             socket.emit("ice-candidate", {
               target: participanteId,
               candidate: event.candidate
@@ -486,6 +677,12 @@
         if (!idsAtuais.includes(id)) {
           removerPreview(id);
         }
+      });
+    }
+
+    function fecharTodasPreviews() {
+      Object.keys(conexoes).forEach((id) => {
+        removerPreview(id);
       });
     }
 
