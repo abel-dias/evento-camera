@@ -761,10 +761,6 @@
       </div>
     </div>
 
-    <div id="nomeParticipante" class="nome-participante">
-      Nenhum participante selecionado
-    </div>
-
     <div id="statusTelao"></div>
   </main>
 
@@ -777,7 +773,6 @@
 
     const videoRemoto = document.getElementById("videoRemoto");
     const statusTelao = document.getElementById("statusTelao");
-    const nomeParticipante = document.getElementById("nomeParticipante");
     const caixaVideo = document.getElementById("caixaVideo");
     const painelAjustes = document.getElementById("painelAjustes");
 
@@ -870,7 +865,6 @@
     socket.on("iniciarVideo", async function(data) {
       try {
         participanteAtual = data.participante;
-        nomeParticipante.textContent = participanteAtual.nome;
         statusTelao.textContent = "Conectando com " + participanteAtual.nome + "...";
 
         await criarConexao(participanteAtual.id);
@@ -1027,7 +1021,6 @@
       fecharConexao();
       participanteAtual = null;
       videoRemoto.srcObject = null;
-      nomeParticipante.textContent = "Nenhum participante selecionado";
       statusTelao.textContent = "Aguardando participante...";
     }
   </script>
