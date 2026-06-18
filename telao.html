@@ -54,7 +54,6 @@
         radial-gradient(circle at 55% 12%, rgba(255, 230, 140, 0.15) 0 8px, transparent 9px);
     }
 
-    /* BANDEIRINHAS FIXAS NO FUNDO, NA PARTE DE CIMA */
     .topo-decorado {
       position: absolute;
       top: 0;
@@ -150,7 +149,6 @@
     .lampadas-topo span:nth-child(7) { left: 76%; top: 8px; }
     .lampadas-topo span:nth-child(8) { left: 88%; top: 22px; }
 
-    /* BOTÃO DE AJUSTES MINIMIZADO */
     .botao-ajustes {
       position: absolute;
       top: 18px;
@@ -241,7 +239,6 @@
       color: rgba(255, 255, 255, 0.75);
     }
 
-    /* ÁREA CENTRAL */
     .area-central {
       position: relative;
       z-index: 10;
@@ -273,7 +270,6 @@
       pointer-events: none;
     }
 
-    /* QUADRO DE CIMA */
     .placa-titulo {
       position: absolute;
       top: -44px;
@@ -294,26 +290,6 @@
       position: relative;
       text-align: center;
       overflow: visible;
-    }
-
-    .placa-arraia::before,
-    .placa-arraia::after {
-      content: "";
-      position: absolute;
-      top: 18px;
-      width: 14px;
-      height: 14px;
-      background: #2f1809;
-      border-radius: 50%;
-      box-shadow: inset 0 2px 2px rgba(255,255,255,0.15);
-    }
-
-    .placa-arraia::before {
-      left: 18px;
-    }
-
-    .placa-arraia::after {
-      right: 18px;
     }
 
     .titulo-arraia {
@@ -349,7 +325,6 @@
       text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
     }
 
-    /* DECORAÇÕES LATERAIS */
     .chapeu-palha {
       position: absolute;
       top: 34px;
@@ -529,7 +504,6 @@
         14px -8px 0 0 #6b3c18;
     }
 
-    /* ÁREA DO VÍDEO */
     .janela-video {
       position: relative;
       background: #000;
@@ -574,26 +548,60 @@
       display: block;
     }
 
-    .nome-participante {
-      position: absolute;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(17, 55, 105, 0.95);
-      border: 4px dashed #d9a642;
-      color: #fff3d1;
-      padding: 15px 30px;
-      border-radius: 999px;
-      font-size: 28px;
-      font-weight: bold;
-      text-align: center;
-      max-width: 86vw;
-      z-index: 25;
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-    }
-
     #statusTelao {
       display: none;
+    }
+
+    .qr-overlay {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(17, 55, 105, 0.92), rgba(3, 10, 22, 0.98));
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .qr-overlay.ativo {
+      display: flex;
+    }
+
+    .qr-card {
+      background: rgba(255, 248, 230, 0.98);
+      border: 8px solid #d9a642;
+      border-radius: 32px;
+      padding: 32px;
+      text-align: center;
+      color: #113769;
+      max-width: min(82vw, 620px);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+    }
+
+    .qr-card h2 {
+      margin: 0 0 18px 0;
+      font-family: "FonteJunina", Arial, sans-serif;
+      font-size: clamp(34px, 5vw, 68px);
+      letter-spacing: 4px;
+      color: #9b2f22;
+    }
+
+    .qr-card img {
+      width: min(62vw, 420px);
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 18px;
+      background: white;
+      padding: 12px;
+    }
+
+    .qr-card p {
+      margin: 18px 0 0 0;
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: bold;
+      color: #113769;
     }
 
     @media (max-width: 900px) {
@@ -681,10 +689,12 @@
         height: 62vh;
       }
 
-      .nome-participante {
-        font-size: 22px;
-        padding: 12px 22px;
-        bottom: 16px;
+      .qr-card {
+        padding: 22px;
+      }
+
+      .qr-card img {
+        width: min(78vw, 360px);
       }
     }
   </style>
@@ -737,7 +747,7 @@
       <div class="painel-festa">
         <div class="placa-titulo">
           <div class="placa-arraia">
-            <h1 class="titulo-arraia">ARRAIÁ JULINO</h1>
+            <h1 class="titulo-arraia">ARRAIÁ JUNINO</h1>
             <div class="subtitulo-escola">COLÉGIO LUCIA ALVES</div>
           </div>
         </div>
@@ -761,6 +771,14 @@
       </div>
     </div>
 
+    <div id="qrOverlay" class="qr-overlay">
+      <div class="qr-card">
+        <h2>ESCANEIE</h2>
+        <img src="QR-CODE-LIVE.png" alt="QR Code do evento" />
+        <p>Entre para aparecer ao vivo no telão</p>
+      </div>
+    </div>
+
     <div id="statusTelao"></div>
   </main>
 
@@ -775,6 +793,7 @@
     const statusTelao = document.getElementById("statusTelao");
     const caixaVideo = document.getElementById("caixaVideo");
     const painelAjustes = document.getElementById("painelAjustes");
+    const qrOverlay = document.getElementById("qrOverlay");
 
     const btnPequeno = document.getElementById("btnPequeno");
     const btnMedio = document.getElementById("btnMedio");
@@ -828,6 +847,19 @@
       mudarTamanho(tamanhoSalvo);
     }
 
+    function mostrarQRCode() {
+      fecharConexao();
+      participanteAtual = null;
+      videoRemoto.srcObject = null;
+      qrOverlay.classList.add("ativo");
+      statusTelao.textContent = "QR Code exibido.";
+    }
+
+    function esconderQRCode() {
+      qrOverlay.classList.remove("ativo");
+      statusTelao.textContent = "QR Code ocultado.";
+    }
+
     document.addEventListener("keydown", function(event) {
       const tecla = event.key.toLowerCase();
 
@@ -862,8 +894,18 @@
       statusTelao.textContent = "Telão registrado.";
     });
 
+    socket.on("mostrarQRCodeTelao", function() {
+      mostrarQRCode();
+    });
+
+    socket.on("esconderQRCodeTelao", function() {
+      esconderQRCode();
+    });
+
     socket.on("iniciarVideo", async function(data) {
       try {
+        esconderQRCode();
+
         participanteAtual = data.participante;
         statusTelao.textContent = "Conectando com " + participanteAtual.nome + "...";
 
@@ -1019,6 +1061,8 @@
 
     function limparTelao() {
       fecharConexao();
+      esconderQRCode();
+
       participanteAtual = null;
       videoRemoto.srcObject = null;
       statusTelao.textContent = "Aguardando participante...";
