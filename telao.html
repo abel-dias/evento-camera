@@ -602,6 +602,8 @@
       font-size: clamp(18px, 2vw, 28px);
       font-weight: bold;
       color: #113769;
+      line-height: 1.25;
+      white-space: pre-line;
     }
 
     @media (max-width: 900px) {
@@ -747,7 +749,7 @@
       <div class="painel-festa">
         <div class="placa-titulo">
           <div class="placa-arraia">
-            <h1 class="titulo-arraia">ARRAIÁ JULINO</h1>
+            <h1 class="titulo-arraia">ARRAIÁ JUNINO</h1>
             <div class="subtitulo-escola">COLÉGIO LUCIA ALVES</div>
           </div>
         </div>
@@ -775,7 +777,7 @@
       <div class="qr-card">
         <h2>ESCANEIE</h2>
         <img src="QR-CODE-LIVE.png" alt="QR Code do evento" />
-        <p>Para participar do sorteio.</p>
+        <p id="textoInferiorQRCode">Entre para participar do sorteio!</p>
       </div>
     </div>
 
@@ -794,6 +796,7 @@
     const caixaVideo = document.getElementById("caixaVideo");
     const painelAjustes = document.getElementById("painelAjustes");
     const qrOverlay = document.getElementById("qrOverlay");
+    const textoInferiorQRCode = document.getElementById("textoInferiorQRCode");
 
     const btnPequeno = document.getElementById("btnPequeno");
     const btnMedio = document.getElementById("btnMedio");
@@ -847,10 +850,19 @@
       mudarTamanho(tamanhoSalvo);
     }
 
-    function mostrarQRCode() {
+    function mostrarQRCode(dados = {}) {
       fecharConexao();
+
       participanteAtual = null;
       videoRemoto.srcObject = null;
+
+      const texto =
+        dados.texto && dados.texto.trim() !== ""
+          ? dados.texto.trim()
+          : "Entre para participar do sorteio!";
+
+      textoInferiorQRCode.textContent = texto;
+
       qrOverlay.classList.add("ativo");
       statusTelao.textContent = "QR Code exibido.";
     }
@@ -894,8 +906,8 @@
       statusTelao.textContent = "Telão registrado.";
     });
 
-    socket.on("mostrarQRCodeTelao", function() {
-      mostrarQRCode();
+    socket.on("mostrarQRCodeTelao", function(dados) {
+      mostrarQRCode(dados);
     });
 
     socket.on("esconderQRCodeTelao", function() {
