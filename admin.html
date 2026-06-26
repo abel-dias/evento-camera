@@ -143,6 +143,11 @@
       color: #111;
     }
 
+    .btn-atualizar {
+      background: #c084fc;
+      color: #111;
+    }
+
     .btn-sair {
       background: #ff7676;
       color: #111;
@@ -162,6 +167,45 @@
       padding: 12px 16px;
       border-radius: 14px;
       line-height: 1.4;
+    }
+
+    .controle-qr {
+      max-width: 1200px;
+      margin: 0 auto 20px auto;
+      background: #17233a;
+      border-radius: 18px;
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.20);
+    }
+
+    .controle-qr label {
+      font-weight: bold;
+      color: #ffdf7e;
+    }
+
+    .controle-qr textarea {
+      width: 100%;
+      min-height: 74px;
+      resize: vertical;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 17px;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
+
+    .controle-qr small {
+      color: #d5dcec;
+      line-height: 1.4;
+    }
+
+    .botoes-qr {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .grid-cameras {
@@ -246,11 +290,13 @@
         grid-template-columns: 1fr;
       }
 
-      .botoes-topo {
+      .botoes-topo,
+      .botoes-qr {
         width: 100%;
       }
 
-      .botoes-topo button {
+      .botoes-topo button,
+      .botoes-qr button {
         flex: 1;
       }
     }
@@ -310,6 +356,29 @@
       </div>
     </div>
 
+    <div class="controle-qr">
+      <label for="textoQRCode">
+        Texto abaixo do QR Code
+      </label>
+
+      <textarea
+        id="textoQRCode"
+        placeholder="Digite aqui o texto que vai aparecer embaixo do QR Code"
+      >Entre para participar do sorteio!</textarea>
+
+      <small>
+        Escreva a mensagem e clique em <strong>📱 QR Code</strong>.
+        Se o QR Code já estiver aparecendo no telão, clique em
+        <strong>Atualizar texto do QR</strong>.
+      </small>
+
+      <div class="botoes-qr">
+        <button id="btnAtualizarQR" class="btn btn-atualizar">
+          ✏️ Atualizar texto do QR
+        </button>
+      </div>
+    </div>
+
     <div class="aviso">
       As miniaturas aparecem quando o participante permite a câmera no celular.
       Clique em <strong>Colocar no telão</strong>, use
@@ -339,6 +408,8 @@
     const btnParar = document.getElementById("btnParar");
     const btnSortear = document.getElementById("btnSortear");
     const btnQRCode = document.getElementById("btnQRCode");
+    const btnAtualizarQR = document.getElementById("btnAtualizarQR");
+    const textoQRCode = document.getElementById("textoQRCode");
 
     let socket = null;
     let selecionadoAtual = null;
@@ -396,6 +467,12 @@
     }
 
     window.addEventListener("load", () => {
+      const textoSalvo = localStorage.getItem("textoQRCode");
+
+      if (textoSalvo) {
+        textoQRCode.value = textoSalvo;
+      }
+
       if (sessionStorage.getItem("adminLiberado") === "sim") {
         telaSenha.style.display = "none";
         adminConteudo.classList.remove("admin-bloqueado");
@@ -411,6 +488,10 @@
           verificarSenha();
         }
       });
+    });
+
+    textoQRCode.addEventListener("input", () => {
+      localStorage.setItem("textoQRCode", textoQRCode.value);
     });
 
     function iniciarAdmin() {
@@ -482,25 +563,61 @@
       alternarQRCodeTelao();
     });
 
+    btnAtualizarQR.addEventListener("click", () => {
+      enviarQRCodeParaTelao();
+    });
+
+    function pegarTextoQRCode() {
+      const texto = textoQRCode.value.trim();
+
+      if (texto === "") {
+        return "Entre para participar do sorteio!";
+      }
+
+      return texto;
+    }
+
+    function enviarQRCodeParaTelao() {
+      if (!socket) {
+        alert("Admin ainda não está conectado.");
+        return;
+      }
+
+      const texto = pegarTextoQRCode();
+
+      localStorage.setItem("textoQRCode", texto);
+
+      socket.emit("mostrarQRCodeTelao", {
+        texto: texto
+      });
+
+      qrCodeVisivel = true;
+      selecionadoAtual = null;
+
+      statusAdmin.textContent = "QR Code exibido no telão.";
+      atualizarBotaoQRCode();
+      atualizarCardSelecionado();
+    }
+
     function alternarQRCodeTelao() {
       if (!socket) {
         alert("Admin ainda não está conectado.");
         return;
       }
 
-      qrCodeVisivel = !qrCodeVisivel;
-
       if (qrCodeVisivel) {
-        socket.emit("mostrarQRCodeTelao");
-        selecionadoAtual = null;
-        statusAdmin.textContent = "QR Code exibido no telão.";
-      } else {
         socket.emit("esconderQRCodeTelao");
+
+        qrCodeVisivel = false;
+
         statusAdmin.textContent = "QR Code ocultado.";
+        atualizarBotaoQRCode();
+        atualizarCardSelecionado();
+
+        return;
       }
 
-      atualizarBotaoQRCode();
-      atualizarCardSelecionado();
+      enviarQRCodeParaTelao();
     }
 
     function esconderQRCodeSeEstiverAberto() {
